@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <head>
   <title>Finance AI Chatbox</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <style>
     body {
@@ -45,6 +45,36 @@
       border-radius: 8px;
       margin-bottom: 15px;
     }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f4f4f4;
+    }
+
+    code {
+      background: #f5f5f5;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
   </style>
 </head>
 
@@ -56,6 +86,7 @@
 
   <button onclick="sendMessage()">Send</button>
   <button onclick="clearChat()">Clear Chat</button>
+  <button onclick="insertCalculatorTemplate()">Finance Calculator</button>
 
   <div id="chat"></div>
 
@@ -77,18 +108,40 @@
         behavior: "smooth"
       });
     }
-     function clearChat() {
 
-  if (!confirm("Clear all chat history?")) {
-    return;
-  }
+    function clearChat() {
+      if (!confirm("Clear all chat history?")) {
+        return;
+      }
 
-  document.getElementById("chat").innerHTML = "";
+      document.getElementById("chat").innerHTML = "";
+      conversation = [];
+    }
 
-  conversation = [];
+    function insertCalculatorTemplate() {
+      document.getElementById("message").value =
+`Calculate Black-Scholes Option
 
-}
+Option Type: Call
+Stock Price S = 300
+Strike Price K = 280
+Risk-free Rate r = 0.03
+Implied Volatility IV = 0.25
+Time to Expiry T = 0.10
+Market Price = 25
 
+Please calculate:
+1. Black-Scholes model price
+2. d1 and d2
+3. Delta
+4. Gamma
+5. Vega
+6. Theta
+7. Intrinsic value
+8. Time value
+9. Moneyness
+10. Interpretation`;
+    }
 
     async function sendMessage() {
       const messageBox = document.getElementById("message");
@@ -130,7 +183,8 @@
       });
 
       document.getElementById(loadingId).innerHTML =
-      `<strong>AI:</strong><br>${marked.parse(aiReply)}`;
+        `<strong>AI:</strong><br>${marked.parse(aiReply)}`;
+
       scrollToBottom();
     }
   </script>
