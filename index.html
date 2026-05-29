@@ -139,6 +139,7 @@
     </select>
 
     <button onclick="calculateBS()">Calculate Black-Scholes</button>
+    <button onclick="calculateIV()">Calculate IV</button>
 
     <div id="bsResult"></div>
   </div>
@@ -323,6 +324,69 @@ Please calculate:
         </table>
       `;
     }
+    function bsPriceWithIV(S, K, r, T, sigma, type) {
+  const d1 =
+    (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) /
+    (sigma * Math.sqrt(T));
+
+  const d2 = d1 - sigma * Math.sqrt(T);
+
+  if (type === "call") {
+    return S * normCDF(d1) - K * Math.exp(-r * T) * normCDF(d2);
+  } else {
+    return K * Math.exp(-r * T) * normCDF(-d2) - S * normCDF(-d1);
+  }
+}
+
+function calculateIV() {
+  const S = Number(document.getElementById("bsS").value);
+  const K = Number(document.getElementById("bsK").value);
+  const r = Number(document.getElementById("bsR").value);
+  const T = Number(document.getElementById("bsT").value);
+  const marketPrice = Number(document.getElementById("bsMarket").value);
+  const type = document.getElementById("bsType").value;
+
+  if (S <= 0 || K <= 0 || T <= 0 || marketPrice <= 0) {
+    document.getElementById("bsResult").innerHTML =
+      "<p>Please enter valid positive values for S, K, T, and Market Price.</p>";
+    return;
+  }
+
+  let low = 0.0001;
+  let high = 5.0;
+  let mid = 0;
+
+  for (let i = 0; i < 100; i++) {
+    mid = (low + high) / 2;
+
+    const modelPrice = bsPriceWithIV(S, K, r, T, mid, type);
+
+    if (modelPrice > marketPrice) {
+      high = mid;
+    } else {
+      low = mid;
+    }
+  }
+
+  const impliedVol = mid;
+  const finalPrice = bsPriceWithIV(S, K, r, T, impliedVol, type);
+
+  document.getElementById("bsResult").innerHTML = `
+    <h3>Implied Volatility Solver Result</h3>
+    <table>
+      <tr><th>Metric</th><th>Value</th></tr>
+      <tr><td>Option Type</td><td>${type.toUpperCase()}</td></tr>
+      <tr><td>Stock Price (S)</td><td>${S.toFixed(4)}</td></tr>
+      <tr><td>Strike Price (K)</td><td>${K.toFixed(4)}</td></tr>
+      <tr><td>Risk-Free Rate (r)</td><td>${r.toFixed(4)}</td></tr>
+      <tr><td>Time to Expiry (T)</td><td>${T.toFixed(4)}</td></tr>
+      <tr><td>Market Price</td><td>${marketPrice.toFixed(4)}</td></tr>
+      <tr><td>Implied Volatility</td><td>${(impliedVol * 100).toFixed(2)}%</td></tr>
+      <tr><td>Model Price at IV</td><td>${finalPrice.toFixed(4)}</td></tr>
+    </table>
+  `;
+}
+
 
     async function sendMessage() {
       const messageBox = document.getElementById("message");
