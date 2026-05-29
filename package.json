@@ -1,0 +1,8 @@
+{
+  "name": "finance-ai-chatbox",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "openai": "^6.39.0"
+  }
+}
