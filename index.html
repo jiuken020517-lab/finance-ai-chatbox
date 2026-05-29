@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <head>
   <title>Finance AI Chatbox</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -129,8 +130,7 @@
       });
 
       document.getElementById(loadingId).innerHTML =
-        `<strong>AI:</strong><br>${aiReply}`;
-
+      `<strong>AI:</strong><br>${marked.parse(aiReply)}`;
       scrollToBottom();
     }
   </script>
