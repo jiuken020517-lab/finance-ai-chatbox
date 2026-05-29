@@ -121,6 +121,9 @@
   <label><b>Time to Expiry (T)</b></label>
   <input id="bsT" placeholder="Example: 0.10" value="0.10">
 
+  <label><b>Market Price</b></label>
+  <input id="bsMarket" placeholder="Example: 25" value="25">
+
   <select id="bsType">
     <option value="call">Call</option>
     <option value="put">Put</option>
@@ -222,6 +225,7 @@ Please calculate:
       const r = Number(document.getElementById("bsR").value);
       const sigma = Number(document.getElementById("bsIV").value);
       const T = Number(document.getElementById("bsT").value);
+      const marketPrice = Number(document.getElementById("bsMarket").value);
       const type = document.getElementById("bsType").value;
 
       if (S <= 0 || K <= 0 || sigma <= 0 || T <= 0) {
@@ -264,6 +268,15 @@ Please calculate:
 
       const timeValue = price - intrinsic;
 
+      const mispricing = marketPrice - price;
+
+      let valuationStatus = "Fairly Priced";
+      if (mispricing > 0) {
+        valuationStatus = "Overpriced";
+      } else if (mispricing < 0) {
+        valuationStatus = "Underpriced";
+      }
+
       let moneyness = "ATM";
       if (type === "call") {
         if (S > K) moneyness = "ITM";
@@ -279,6 +292,9 @@ Please calculate:
           <tr><th>Metric</th><th>Value</th></tr>
           <tr><td>Option Type</td><td>${type.toUpperCase()}</td></tr>
           <tr><td>Model Price</td><td>${price.toFixed(4)}</td></tr>
+          <tr><td>Market Price</td><td>${marketPrice.toFixed(4)}</td></tr>
+          <tr><td>Mispricing</td><td>${mispricing.toFixed(4)}</td></tr>
+          <tr><td>Valuation Status</td><td>${valuationStatus}</td></tr>
           <tr><td>d1</td><td>${d1.toFixed(4)}</td></tr>
           <tr><td>d2</td><td>${d2.toFixed(4)}</td></tr>
           <tr><td>Delta</td><td>${delta.toFixed(4)}</td></tr>
