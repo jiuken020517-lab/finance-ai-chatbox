@@ -58,7 +58,14 @@
   <div id="chat"></div>
 
   <script>
-    async function sendMessage() {
+  document.getElementById("message").addEventListener("keydown", function(event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      sendMessage();
+    }
+  });
+
+  async function sendMessage() {
       const messageBox = document.getElementById("message");
       const chatBox = document.getElementById("chat");
       const message = messageBox.value.trim();
@@ -84,7 +91,8 @@
 
       document.getElementById(loadingId).innerHTML =
         `<strong>AI:</strong><br>${data.reply || data.error || "No reply"}`;
-    }
+  }
+
   </script>
 </body>
 </html>
