@@ -95,9 +95,9 @@
 <body>
   <h1>Finance AI Chatbox</h1>
 
-  <button onclick="showSection('chatSection')">Chat Mode</button>
-  <button onclick="showSection('bsSection')">Black-Scholes Calculator</button>
-  <button onclick="showSection('pnlSection')">Option P&L</button>
+  <button onclick="showSection('chatSection')">AI Chat</button>
+  <button onclick="showSection('optionsSection')">Options Hub</button>
+  
 
   <hr>
 
@@ -112,7 +112,13 @@
     <div id="chat"></div>
   </div>
 
-  <div id="bsSection" style="display:none;">
+  <div id="optionsSection" style="display:none;">
+  <h2>Options Hub</h2>
+
+  <button onclick="showOptionTool('bsTool')">Black-Scholes / IV Solver</button>
+  <button onclick="showOptionTool('pnlTool')">Option P&L</button>
+
+  <div id="bsTool">
     <h2>Black-Scholes Calculator</h2>
 
     <label>Stock Price (S)</label>
@@ -143,8 +149,29 @@
     <button onclick="calculateIV()">Calculate IV</button>
 
     <div id="bsResult"></div>
- </div>
- 
+  </div>
+
+  <div id="pnlTool" style="display:none;">
+    <h2>Option P&L Analyzer</h2>
+
+    <label>Entry Price</label>
+    <input id="entryPrice" value="21.70">
+
+    <label>Current Price</label>
+    <input id="currentPrice" value="25.40">
+
+    <label>Contracts</label>
+    <input id="contracts" value="3">
+
+    <label>Multiplier</label>
+    <input id="multiplier" value="100">
+
+    <button onclick="calculatePnL()">Calculate P&L</button>
+
+    <div id="pnlResult"></div>
+  </div>
+</div>
+
     <div id="pnlSection" style="display:none;">
 
   <h2>Option P&L Analyzer</h2>
@@ -181,11 +208,18 @@
     };
 
     function showSection(sectionId) {
-      document.getElementById("chatSection").style.display = "none";
-      document.getElementById("bsSection").style.display = "none";
-      document.getElementById("pnlSection").style.display = "none";
-      document.getElementById(sectionId).style.display = "block";
-    }
+  document.getElementById("chatSection").style.display = "none";
+  document.getElementById("optionsSection").style.display = "none";
+
+  document.getElementById(sectionId).style.display = "block";
+}
+
+function showOptionTool(toolId) {
+  document.getElementById("bsTool").style.display = "none";
+  document.getElementById("pnlTool").style.display = "none";
+
+  document.getElementById(toolId).style.display = "block";
+}
 
     function scrollToBottom() {
       window.scrollTo({
