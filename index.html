@@ -26,12 +26,23 @@
       cursor: pointer;
     }
 
-    #reply {
+    #chat {
       margin-top: 20px;
       white-space: pre-wrap;
-      background: #f4f4f4;
-      padding: 15px;
+    }
+
+    .user {
+      background: #e8f0ff;
+      padding: 12px;
       border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .ai {
+      background: #f4f4f4;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 15px;
     }
   </style>
 </head>
@@ -44,14 +55,22 @@
 
   <button onclick="sendMessage()">Send</button>
 
-  <div id="reply"></div>
+  <div id="chat"></div>
 
   <script>
     async function sendMessage() {
-      const message = document.getElementById("message").value;
-      const replyBox = document.getElementById("reply");
+      const messageBox = document.getElementById("message");
+      const chatBox = document.getElementById("chat");
+      const message = messageBox.value.trim();
 
-      replyBox.innerText = "Loading...";
+      if (!message) return;
+
+      chatBox.innerHTML += `<div class="user"><strong>You:</strong><br>${message}</div>`;
+      messageBox.value = "";
+
+      const loadingId = "loading-" + Date.now();
+
+      chatBox.innerHTML += `<div class="ai" id="${loadingId}"><strong>AI:</strong><br>Loading...</div>`;
 
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -63,7 +82,8 @@
 
       const data = await response.json();
 
-      replyBox.innerText = data.reply || data.error || "No reply";
+      document.getElementById(loadingId).innerHTML =
+        `<strong>AI:</strong><br>${data.reply || data.error || "No reply"}`;
     }
   </script>
 </body>
