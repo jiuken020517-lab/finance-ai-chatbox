@@ -6,7 +6,7 @@ const client = new OpenAI({
 
 export default async function handler(req, res) {
   try {
-    const { message } = req.body;
+    const { messages } = req.body;
 
     const completion = await client.chat.completions.create({
       model: "gpt-4.1-mini",
@@ -16,10 +16,7 @@ export default async function handler(req, res) {
           content:
             "You are a professional finance AI assistant specializing in investment analysis, portfolio management, derivatives, options, valuation, risk management, and corporate finance. Explain concepts clearly and provide examples when appropriate."
         },
-        {
-          role: "user",
-          content: message,
-        },
+        ...messages
       ],
     });
 

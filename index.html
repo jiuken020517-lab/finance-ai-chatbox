@@ -58,6 +58,8 @@
   <div id="chat"></div>
 
   <script>
+    let conversation = [];
+
     window.onload = function () {
       document.getElementById("message").addEventListener("keydown", function(event) {
         if (event.key === "Enter" && !event.shiftKey) {
@@ -81,6 +83,11 @@
 
       if (!message) return;
 
+      conversation.push({
+        role: "user",
+        content: message
+      });
+
       chatBox.innerHTML += `<div class="user"><strong>You:</strong><br>${message}</div>`;
       messageBox.value = "";
       scrollToBottom();
@@ -95,13 +102,21 @@
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ message })
+        body: JSON.stringify({
+          messages: conversation
+        })
       });
 
       const data = await response.json();
+      const aiReply = data.reply || data.error || "No reply";
+
+      conversation.push({
+        role: "assistant",
+        content: aiReply
+      });
 
       document.getElementById(loadingId).innerHTML =
-        `<strong>AI:</strong><br>${data.reply || data.error || "No reply"}`;
+        `<strong>AI:</strong><br>${aiReply}`;
 
       scrollToBottom();
     }
