@@ -27,6 +27,13 @@
       height: 100px;
     }
 
+    label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+
     button {
       margin-top: 10px;
       padding: 10px 18px;
@@ -82,60 +89,59 @@
       border-radius: 8px;
       overflow-x: auto;
     }
-
-    label {
-      display: block;
-      margin-top: 12px;
-      margin-bottom: 4px;
-      font-weight: bold;
-    }
   </style>
 </head>
 
 <body>
   <h1>Finance AI Chatbox</h1>
 
-  <textarea id="message" placeholder="Ask a finance question..."></textarea>
-  <br>
-
-  <button onclick="sendMessage()">Send</button>
-  <button onclick="clearChat()">Clear Chat</button>
-  <button onclick="insertCalculatorTemplate()">Finance Calculator</button>
+  <button onclick="showSection('chatSection')">Chat Mode</button>
+  <button onclick="showSection('bsSection')">Black-Scholes Calculator</button>
 
   <hr>
 
-  <h2>Black-Scholes Calculator</h2>
+  <div id="chatSection">
+    <textarea id="message" placeholder="Ask a finance question..."></textarea>
+    <br>
 
-  <label><b>Stock Price (S)</b></label>
-  <input id="bsS" placeholder="Example: 300" value="300">
+    <button onclick="sendMessage()">Send</button>
+    <button onclick="clearChat()">Clear Chat</button>
+    <button onclick="insertCalculatorTemplate()">Finance Calculator Template</button>
 
-  <label><b>Strike Price (K)</b></label>
-  <input id="bsK" placeholder="Example: 280" value="280">
+    <div id="chat"></div>
+  </div>
 
-  <label><b>Risk-free Rate (r)</b></label>
-  <input id="bsR" placeholder="Example: 0.03" value="0.03">
+  <div id="bsSection" style="display:none;">
+    <h2>Black-Scholes Calculator</h2>
 
-  <label><b>Implied Volatility (IV)</b></label>
-  <input id="bsIV" placeholder="Example: 0.25" value="0.25">
+    <label>Stock Price (S)</label>
+    <input id="bsS" value="300">
 
-  <label><b>Time to Expiry (T)</b></label>
-  <input id="bsT" placeholder="Example: 0.10" value="0.10">
+    <label>Strike Price (K)</label>
+    <input id="bsK" value="280">
 
-  <label><b>Market Price</b></label>
-  <input id="bsMarket" placeholder="Example: 25" value="25">
+    <label>Risk-Free Rate (r)</label>
+    <input id="bsR" value="0.03">
 
-  <select id="bsType">
-    <option value="call">Call</option>
-    <option value="put">Put</option>
-  </select>
+    <label>Implied Volatility (IV)</label>
+    <input id="bsIV" value="0.25">
 
-  <button onclick="calculateBS()">Calculate Black-Scholes</button>
+    <label>Time to Expiry (T in years)</label>
+    <input id="bsT" value="0.10">
 
-  <div id="bsResult"></div>
+    <label>Market Price</label>
+    <input id="bsMarket" value="25">
 
-  <hr>
+    <label>Option Type</label>
+    <select id="bsType">
+      <option value="call">Call</option>
+      <option value="put">Put</option>
+    </select>
 
-  <div id="chat"></div>
+    <button onclick="calculateBS()">Calculate Black-Scholes</button>
+
+    <div id="bsResult"></div>
+  </div>
 
   <script>
     let conversation = [];
@@ -148,6 +154,12 @@
         }
       });
     };
+
+    function showSection(sectionId) {
+      document.getElementById("chatSection").style.display = "none";
+      document.getElementById("bsSection").style.display = "none";
+      document.getElementById(sectionId).style.display = "block";
+    }
 
     function scrollToBottom() {
       window.scrollTo({
@@ -267,17 +279,20 @@ Please calculate:
         type === "call" ? Math.max(S - K, 0) : Math.max(K - S, 0);
 
       const timeValue = price - intrinsic;
-
       const mispricing = marketPrice - price;
 
       let valuationStatus = "Fairly Priced";
+
       if (mispricing > 0) {
-        valuationStatus = "Overpriced";
-      } else if (mispricing < 0) {
-        valuationStatus = "Underpriced";
+        valuationStatus = "Overvalued";
+      }
+
+      if (mispricing < 0) {
+        valuationStatus = "Undervalued";
       }
 
       let moneyness = "ATM";
+
       if (type === "call") {
         if (S > K) moneyness = "ITM";
         if (S < K) moneyness = "OTM";
