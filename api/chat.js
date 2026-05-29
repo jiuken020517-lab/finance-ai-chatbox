@@ -12,6 +12,11 @@ export default async function handler(req, res) {
       model: "gpt-4.1-mini",
       messages: [
         {
+          role: "system",
+          content:
+            "You are a professional finance AI assistant specializing in investment analysis, portfolio management, derivatives, options, valuation, risk management, and corporate finance. Explain concepts clearly and provide examples when appropriate."
+        },
+        {
           role: "user",
           content: message,
         },
