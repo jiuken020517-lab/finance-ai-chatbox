@@ -54,6 +54,7 @@
   <br>
 
   <button onclick="sendMessage()">Send</button>
+  <button onclick="clearChat()">Clear Chat</button>
 
   <div id="chat"></div>
 
@@ -75,6 +76,18 @@
         behavior: "smooth"
       });
     }
+     function clearChat() {
+
+  if (!confirm("Clear all chat history?")) {
+    return;
+  }
+
+  document.getElementById("chat").innerHTML = "";
+
+  conversation = [];
+
+}
+
 
     async function sendMessage() {
       const messageBox = document.getElementById("message");
