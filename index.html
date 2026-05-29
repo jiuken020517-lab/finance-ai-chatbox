@@ -97,6 +97,7 @@
 
   <button onclick="showSection('chatSection')">Chat Mode</button>
   <button onclick="showSection('bsSection')">Black-Scholes Calculator</button>
+  <button onclick="showSection('pnlSection')">Option P&L</button>
 
   <hr>
 
@@ -142,6 +143,27 @@
     <button onclick="calculateIV()">Calculate IV</button>
 
     <div id="bsResult"></div>
+    <div id="pnlSection" style="display:none;">
+
+  <h2>Option P&L Analyzer</h2>
+
+  <label>Entry Price</label>
+  <input id="entryPrice" value="21.70">
+
+  <label>Current Price</label>
+  <input id="currentPrice" value="25.40">
+
+  <label>Contracts</label>
+  <input id="contracts" value="3">
+
+  <label>Multiplier</label>
+  <input id="multiplier" value="100">
+
+  <button onclick="calculatePnL()">Calculate P&L</button>
+
+  <div id="pnlResult"></div>
+
+
   </div>
 
   <script>
@@ -159,6 +181,7 @@
     function showSection(sectionId) {
       document.getElementById("chatSection").style.display = "none";
       document.getElementById("bsSection").style.display = "none";
+      document.getElementById("pnlSection").style.display = "none";
       document.getElementById(sectionId).style.display = "block";
     }
 
@@ -386,6 +409,82 @@ function calculateIV() {
     </table>
   `;
 }
+function calculatePnL() {
+  const entryPrice =
+    Number(document.getElementById("entryPrice").value);
+
+  const currentPrice =
+    Number(document.getElementById("currentPrice").value);
+
+  const contracts =
+    Number(document.getElementById("contracts").value);
+
+  const multiplier =
+    Number(document.getElementById("multiplier").value);
+
+  const profit =
+    (currentPrice - entryPrice) *
+    contracts *
+    multiplier;
+
+  const returnPct =
+    ((currentPrice - entryPrice) /
+      entryPrice) *
+    100;
+
+  const status =
+    profit >= 0
+      ? "Winning Position"
+      : "Losing Position";
+
+  document.getElementById("pnlResult").innerHTML = `
+    <h3>P&L Result</h3>
+
+    <table>
+      <tr>
+        <th>Metric</th>
+        <th>Value</th>
+      </tr>
+
+      <tr>
+        <td>Entry Price</td>
+        <td>${entryPrice.toFixed(2)}</td>
+      </tr>
+
+      <tr>
+        <td>Current Price</td>
+        <td>${currentPrice.toFixed(2)}</td>
+      </tr>
+
+      <tr>
+        <td>Contracts</td>
+        <td>${contracts}</td>
+      </tr>
+
+      <tr>
+        <td>Profit / Loss</td>
+        <td>${profit.toFixed(2)}</td>
+      </tr>
+
+      <tr>
+        <td>Return (%)</td>
+        <td>${returnPct.toFixed(2)}%</td>
+      </tr>
+
+      <tr>
+        <td>Breakeven</td>
+        <td>${entryPrice.toFixed(2)}</td>
+      </tr>
+
+      <tr>
+        <td>Status</td>
+        <td>${status}</td>
+      </tr>
+
+    </table>
+  `;
+}
+
 
 
     async function sendMessage() {
