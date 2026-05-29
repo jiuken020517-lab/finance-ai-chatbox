@@ -82,6 +82,13 @@
       border-radius: 8px;
       overflow-x: auto;
     }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
   </style>
 </head>
 
@@ -99,11 +106,20 @@
 
   <h2>Black-Scholes Calculator</h2>
 
-  <input id="bsS" placeholder="Stock Price S" value="300">
-  <input id="bsK" placeholder="Strike Price K" value="280">
-  <input id="bsR" placeholder="Risk-free Rate r" value="0.03">
-  <input id="bsIV" placeholder="Implied Volatility IV" value="0.25">
-  <input id="bsT" placeholder="Time to Expiry T" value="0.10">
+  <label><b>Stock Price (S)</b></label>
+  <input id="bsS" placeholder="Example: 300" value="300">
+
+  <label><b>Strike Price (K)</b></label>
+  <input id="bsK" placeholder="Example: 280" value="280">
+
+  <label><b>Risk-free Rate (r)</b></label>
+  <input id="bsR" placeholder="Example: 0.03" value="0.03">
+
+  <label><b>Implied Volatility (IV)</b></label>
+  <input id="bsIV" placeholder="Example: 0.25" value="0.25">
+
+  <label><b>Time to Expiry (T)</b></label>
+  <input id="bsT" placeholder="Example: 0.10" value="0.10">
 
   <select id="bsType">
     <option value="call">Call</option>
