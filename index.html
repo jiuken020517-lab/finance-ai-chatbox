@@ -55,7 +55,7 @@
 
   <button onclick="sendMessage()">Send</button>
 
-  <div id="chat"></div>
+  <div id="chat" style="max-height:600px; overflow-y:auto;"></div>
 
   <script>
   window.onload = function () {
@@ -82,6 +82,7 @@
       if (!message) return;
 
       chatBox.innerHTML += `<div class="user"><strong>You:</strong><br>${message}</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
       messageBox.value = "";
 
       const loadingId = "loading-" + Date.now();
@@ -100,6 +101,9 @@
 
       document.getElementById(loadingId).innerHTML =
         `<strong>AI:</strong><br>${data.reply || data.error || "No reply"}`;
+      
+        chatBox.scrollTop = chatBox.scrollHeight;  
+
   }
 
   </script>
