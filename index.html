@@ -1632,44 +1632,23 @@ if (
   );
 
 }
-if (
-  riskText.includes("Delta")
-) {
+if (riskText.includes("Main Driver")) {
 
-  summary.push(
-    "Main Risk Driver: Delta"
-  );
+  const lines = riskText.split("\n");
 
-}
+  for (let i = 0; i < lines.length; i++) {
 
-if (
-  riskText.includes("Gamma")
-) {
+    if (lines[i].includes("Main Driver")) {
 
-  summary.push(
-    "Main Risk Driver: Gamma"
-  );
+      const driver = lines[i + 1];
 
-}
+      summary.push(
+        "Main Risk Driver: " + driver
+      );
 
-if (
-  riskText.includes("Vega")
-) {
-
-  summary.push(
-    "Main Risk Driver: Vega"
-  );
-
-}
-
-if (
-  riskText.includes("Theta")
-) {
-
-  summary.push(
-    "Main Risk Driver: Theta"
-  );
-
+      break;
+    }
+  }
 }
 
 
