@@ -307,6 +307,7 @@ canvas {
     <option value="straddle">Straddle</option>
     <option value="coveredCall">Covered Call</option>
     <option value="bullCallSpread">Bull Call Spread</option>
+    <option value="bearPutSpread">Bear Put Spread</option>
   </select>
 
   <label>Strike Price (K)</label>
@@ -763,6 +764,23 @@ if (strategy === "bullCallSpread") {
   explanation =
     "A bull call spread uses a long call at a lower strike and a short call at a higher strike. It benefits from a moderate rise in the stock price while limiting both risk and reward.";
 }
+if (strategy === "bearPutSpread") {
+  name = "Bear Put Spread";
+
+  maxProfit = (K2 - K - premium).toFixed(2);
+
+  maxLoss = premium.toFixed(2);
+
+  breakeven = (K - premium).toFixed(2);
+
+  payoff =
+    Math.max(K2 - S, 0) -
+    Math.max(K - S, 0) -
+    premium;
+
+  explanation =
+    "A bear put spread uses a long put at a higher strike and a short put at a lower strike. It profits from a moderate decline in the stock price while limiting both risk and reward.";
+}
 
   const status = payoff >= 0 ? "Profitable at current stock price" : "Loss at current stock price";
 
@@ -822,6 +840,14 @@ function drawPayoffChart(strategy, K, premium) {
     if (strategy === "bullCallSpread") {
   const K2 = Number(document.getElementById("strategyK2").value);
   payoff = Math.max(S - K, 0) - Math.max(S - K2, 0) - premium;
+}
+if (strategy === "bearPutSpread") {
+  const K2 = Number(document.getElementById("strategyK2").value);
+
+  payoff =
+    Math.max(K2 - S, 0) -
+    Math.max(K - S, 0) -
+    premium;
 }
 
     points.push({ S, payoff });
@@ -900,6 +926,9 @@ if (strategy === "bullCallSpread") {
   breakevenValue = K + premium;
 }
 
+if (strategy === "bearPutSpread") {
+  breakevenValue = K - premium;
+}
 ctx.strokeStyle = "#16a34a";
 ctx.lineWidth = 2;
 ctx.setLineDash([5, 5]);
@@ -967,6 +996,14 @@ if (strategy === "bullCallSpread") {
     premium;
 }
 
+if (strategy === "bearPutSpread") {
+  const K2 = Number(document.getElementById("strategyK2").value);
+
+  currentPayoff =
+    Math.max(K2 - currentPrice, 0) -
+    Math.max(K - currentPrice, 0) -
+    premium;
+}
 ctx.fillStyle = "#dc2626";
 
 ctx.beginPath();
@@ -988,7 +1025,7 @@ ctx.stroke();
 ctx.fillText(
   "Current",
   xScale(currentPrice) + 15,
-  yScale(currentPayoff) - 15
+  yScale(currentPayoff) - 20
 );
 
 ctx.fillStyle = "#dc2626";
@@ -996,7 +1033,7 @@ ctx.fillStyle = "#dc2626";
 ctx.fillText(
   "P&L = " + currentPayoff.toFixed(2),
   xScale(currentPrice) + 15,
-  yScale(currentPayoff) + 10
+  yScale(currentPayoff) + 25
 );
 }
 function calculateGreeksExposure() {
