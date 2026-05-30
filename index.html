@@ -241,7 +241,9 @@ canvas {
   <button onclick="showOptionTool('bsTool')">Black-Scholes / IV Solver</button>
   <button onclick="showOptionTool('pnlTool')">Option P&L</button>
   <button onclick="showOptionTool('strategyTool')">Strategy Analyzer</button>
-
+  <button onclick="showOptionTool('greeksTool')">Greeks Exposure</button>
+  
+  
   <div id="bsTool">
     <h2>Black-Scholes Calculator</h2>
 
@@ -321,6 +323,32 @@ canvas {
   <canvas id="payoffChart" width="700" height="400"></canvas>
 </div>
 
+<div id="greeksTool" style="display:none;">
+  <h2>Greeks Exposure Analyzer</h2>
+
+  <label>Contracts</label>
+  <input id="greeksContracts" value="3">
+
+  <label>Multiplier</label>
+  <input id="greeksMultiplier" value="100">
+
+  <label>Delta</label>
+  <input id="greeksDelta" value="0.55">
+
+  <label>Gamma</label>
+  <input id="greeksGamma" value="0.02">
+
+  <label>Vega</label>
+  <input id="greeksVega" value="25">
+
+  <label>Theta Daily</label>
+  <input id="greeksTheta" value="-0.08">
+
+  <button onclick="calculateGreeksExposure()">Calculate Greeks Exposure</button>
+
+  <div id="greeksResult"></div>
+</div>
+
     <div id="pnlSection" style="display:none;">
 
   <h2>Option P&L Analyzer</h2>
@@ -367,6 +395,7 @@ function showOptionTool(toolId) {
   document.getElementById("bsTool").style.display = "none";
   document.getElementById("pnlTool").style.display = "none";
   document.getElementById("strategyTool").style.display = "none";
+  document.getElementById("greeksTool").style.display = "none";
 
   document.getElementById(toolId).style.display = "block";
 }
@@ -940,6 +969,51 @@ ctx.fillText(
   xScale(currentPrice) + 15,
   yScale(currentPayoff) + 10
 );
+}
+function calculateGreeksExposure() {
+  const contracts = Number(document.getElementById("greeksContracts").value);
+  const multiplier = Number(document.getElementById("greeksMultiplier").value);
+  const delta = Number(document.getElementById("greeksDelta").value);
+  const gamma = Number(document.getElementById("greeksGamma").value);
+  const vega = Number(document.getElementById("greeksVega").value);
+  const theta = Number(document.getElementById("greeksTheta").value);
+
+  const totalDelta = delta * contracts * multiplier;
+  const totalGamma = gamma * contracts * multiplier;
+  const totalVega = vega * contracts;
+  const totalTheta = theta * contracts * multiplier;
+
+  document.getElementById("greeksResult").innerHTML = `
+    <h3>Greeks Exposure Result</h3>
+
+    <table>
+      <tr><th>Metric</th><th>Value</th><th>Meaning</th></tr>
+
+      <tr>
+        <td>Total Delta</td>
+        <td>${totalDelta.toFixed(2)}</td>
+        <td>Approximate P&L change for a $1 move in the underlying.</td>
+      </tr>
+
+      <tr>
+        <td>Total Gamma</td>
+        <td>${totalGamma.toFixed(4)}</td>
+        <td>Change in delta for a $1 move in the underlying.</td>
+      </tr>
+
+      <tr>
+        <td>Total Vega</td>
+        <td>${totalVega.toFixed(2)}</td>
+        <td>Approximate P&L change for a 1.00 volatility point change.</td>
+      </tr>
+
+      <tr>
+        <td>Total Theta Daily</td>
+        <td>${totalTheta.toFixed(2)}</td>
+        <td>Estimated daily time decay.</td>
+      </tr>
+    </table>
+  `;
 }
 
     async function sendMessage() {
