@@ -243,6 +243,7 @@ canvas {
   <button onclick="showOptionTool('strategyTool')">Strategy Analyzer</button>
   <button onclick="showOptionTool('greeksTool')">Greeks Exposure</button>
   <button onclick="showOptionTool('volTool')">Volatility Lab</button>
+  <button onclick="showOptionTool('popTool')">Probability of Profit</button>
   
   
   <div id="bsTool">
@@ -394,6 +395,32 @@ canvas {
 
 </div>
 
+<div id="popTool" style="display:none;">
+  <h2>Probability of Profit</h2>
+
+  <label>Stock Price (S)</label>
+  <input id="popS" value="300">
+
+  <label>Strike Price (K)</label>
+  <input id="popK" value="310">
+
+  <label>Implied Volatility (%)</label>
+  <input id="popIV" value="25">
+
+  <label>Days to Expiry (DTE)</label>
+  <input id="popDTE" value="30">
+
+  <label>Option Type</label>
+  <select id="popType">
+    <option value="call">Call</option>
+    <option value="put">Put</option>
+  </select>
+
+  <button onclick="calculatePOP()">Calculate POP</button>
+
+  <div id="popResult"></div>
+</div>
+
   <script>
     let conversation = [];
 
@@ -419,6 +446,7 @@ function showOptionTool(toolId) {
   document.getElementById("strategyTool").style.display = "none";
   document.getElementById("greeksTool").style.display = "none";
   document.getElementById("volTool").style.display = "none";
+  document.getElementById("popTool").style.display = "none";
 
   document.getElementById(toolId).style.display = "block";
 }
@@ -1171,6 +1199,61 @@ function analyzeVolatility() {
         <td>${suggestion}</td>
       </tr>
     </table>
+  `;
+}
+function calculatePOP() {
+  const S = Number(document.getElementById("popS").value);
+  const K = Number(document.getElementById("popK").value);
+  const iv = Number(document.getElementById("popIV").value) / 100;
+  const dte = Number(document.getElementById("popDTE").value);
+  const type = document.getElementById("popType").value;
+
+  const T = dte / 365;
+  const expectedMove = S * iv * Math.sqrt(T);
+
+  const lowerRange = S - expectedMove;
+  const upperRange = S + expectedMove;
+
+  const z = Math.log(K / S) / (iv * Math.sqrt(T));
+  const probBelowK = normCDF(z);
+  const probAboveK = 1 - probBelowK;
+
+  let probabilityITM = 0;
+  let probabilityOTM = 0;
+  let probabilityProfit = 0;
+
+  if (type === "call") {
+    probabilityITM = probAboveK;
+    probabilityOTM = probBelowK;
+    probabilityProfit = probAboveK;
+  }
+
+  if (type === "put") {
+    probabilityITM = probBelowK;
+    probabilityOTM = probAboveK;
+    probabilityProfit = probBelowK;
+  }
+
+  document.getElementById("popResult").innerHTML = `
+    <h3>POP Result</h3>
+
+    <table>
+      <tr><th>Metric</th><th>Value</th></tr>
+
+      <tr><td>Stock Price</td><td>${S.toFixed(2)}</td></tr>
+      <tr><td>Strike Price</td><td>${K.toFixed(2)}</td></tr>
+      <tr><td>IV</td><td>${(iv * 100).toFixed(2)}%</td></tr>
+      <tr><td>DTE</td><td>${dte}</td></tr>
+      <tr><td>Expected Move</td><td>±${expectedMove.toFixed(2)}</td></tr>
+      <tr><td>1 SD Range</td><td>${lowerRange.toFixed(2)} - ${upperRange.toFixed(2)}</td></tr>
+      <tr><td>Probability ITM</td><td>${(probabilityITM * 100).toFixed(2)}%</td></tr>
+      <tr><td>Probability OTM</td><td>${(probabilityOTM * 100).toFixed(2)}%</td></tr>
+      <tr><td>Estimated POP</td><td>${(probabilityProfit * 100).toFixed(2)}%</td></tr>
+    </table>
+
+    <p>
+      Note: This is a simplified probability estimate based on implied volatility and lognormal price movement assumptions.
+    </p>
   `;
 }
 
