@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -1535,56 +1537,77 @@ function generatePDFReport() {
 
   let y = 20;
 
-  function addSection(title, elementId) {
+  doc.setFontSize(18);
+  doc.text("Finance AI Platform Report", 20, y);
+
+  y += 10;
+  doc.setFontSize(10);
+  doc.text("Generated: " + new Date().toLocaleString(), 20, y);
+
+  y += 15;
+
+  function addTableSection(title, elementId) {
     const element = document.getElementById(elementId);
 
     if (!element || element.innerText.trim() === "") {
       return;
     }
 
-    if (y > 250) {
-      doc.addPage();
-      y = 20;
+    const rows = [];
+    const tableRows = element.querySelectorAll("tr");
+
+    tableRows.forEach((tr) => {
+      const cells = tr.querySelectorAll("th, td");
+      const row = [];
+
+      cells.forEach((cell) => {
+        row.push(cell.innerText.trim());
+      });
+
+      if (row.length > 0) {
+        rows.push(row);
+      }
+    });
+
+    if (rows.length === 0) {
+      return;
     }
 
     doc.setFontSize(14);
     doc.text(title, 20, y);
-    y += 8;
 
-    doc.setFontSize(10);
+    y += 5;
 
-    const text = element.innerText;
-    const lines = doc.splitTextToSize(text, 170);
-
-    lines.forEach(line => {
-      if (y > 280) {
-        doc.addPage();
-        y = 20;
+    doc.autoTable({
+      startY: y,
+      head: [rows[0]],
+      body: rows.slice(1),
+      theme: "grid",
+      styles: {
+        fontSize: 9,
+        cellPadding: 3
+      },
+      headStyles: {
+        fillColor: [37, 99, 235],
+        textColor: 255
+      },
+      margin: {
+        left: 20,
+        right: 20
       }
-
-      doc.text(line, 20, y);
-      y += 6;
     });
 
-    y += 8;
+    y = doc.lastAutoTable.finalY + 12;
   }
 
-  doc.setFontSize(18);
-  doc.text("Finance AI Platform Report", 20, y);
-  y += 12;
-
-  doc.setFontSize(10);
-  doc.text("Generated: " + new Date().toLocaleString(), 20, y);
-  y += 15;
-
-  addSection("Black-Scholes / IV Result", "bsResult");
-  addSection("Option P&L Result", "pnlResult");
-  addSection("Strategy Result", "strategyResult");
-  addSection("Greeks Exposure Result", "greeksResult");
-  addSection("Portfolio Greeks Result", "portfolioGreeksResult");
-  addSection("Volatility Lab Result", "volResult");
-  addSection("Probability of Profit Result", "popResult");
-  addSection("Risk Decomposition Result", "riskResult");
+  addTableSection("Black-Scholes / IV Result", "bsResult");
+  addTableSection("Option P&L Result", "pnlResult");
+  addTableSection("Strategy Result", "strategyResult");
+  addTableSection("Greeks Exposure Result", "greeksResult");
+  addTableSection("Portfolio Greeks Result", "portfolioGreeksResult");
+  addTableSection("Volatility Lab Result", "volResult");
+  addTableSection("Probability of Profit Result", "popResult");
+  addTableSection("Risk Decomposition Result", "riskResult");
 
   doc.save("Finance_AI_Report.pdf");
 }
