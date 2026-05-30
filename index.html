@@ -736,35 +736,33 @@ function analyzeStrategy() {
     explanation = "A long put benefits when the stock price falls below the strike price minus premium.";
   }
 
-  if (strategy === "straddle") {
-    name = "Long Straddle";
-    maxProfit = "Unlimited";
-    maxLoss = (premium * 2).toFixed(2);
-    breakeven = `${(K + premium * 2).toFixed(2)} / ${(K - premium * 2).toFixed(2)}`;
-    payoff = Math.max(S - K, 0) + Math.max(K - S, 0) - premium * 2;
-    explanation = "A long straddle benefits from large price movement in either direction.";
-    if (strategy === "bullCallSpread") {
-  breakevenValue = K + premium;
+ if (strategy === "straddle") {
+  name = "Long Straddle";
+  maxProfit = "Unlimited";
+  maxLoss = (premium * 2).toFixed(2);
+  breakeven = `${(K + premium * 2).toFixed(2)} / ${(K - premium * 2).toFixed(2)}`;
+  payoff = Math.max(S - K, 0) + Math.max(K - S, 0) - premium * 2;
+  explanation = "A long straddle benefits from large price movement in either direction.";
 }
-  }
 
-  if (strategy === "coveredCall") {
-    name = "Covered Call";
-    maxProfit = "Limited";
-    maxLoss = "Stock downside risk reduced by premium";
-    breakeven = (S - premium).toFixed(2);
-    payoff = Math.min(S, K) - S + premium;
-    explanation = "A covered call earns premium income but caps upside above the strike price.";
-    if (strategy === "bullCallSpread") {
-   name = "Bull Call Spread";
-   maxProfit = (K2 - K - premium).toFixed(2);
-   maxLoss = premium.toFixed(2);
-   breakeven = (K + premium).toFixed(2);
-   payoff = Math.max(S - K, 0) - Math.max(S - K2, 0) - premium;
-   explanation =
+if (strategy === "coveredCall") {
+  name = "Covered Call";
+  maxProfit = "Limited";
+  maxLoss = "Stock downside risk reduced by premium";
+  breakeven = (S - premium).toFixed(2);
+  payoff = Math.min(S, K) - S + premium;
+  explanation = "A covered call earns premium income but caps upside above the strike price.";
+}
+
+if (strategy === "bullCallSpread") {
+  name = "Bull Call Spread";
+  maxProfit = (K2 - K - premium).toFixed(2);
+  maxLoss = premium.toFixed(2);
+  breakeven = (K + premium).toFixed(2);
+  payoff = Math.max(S - K, 0) - Math.max(S - K2, 0) - premium;
+  explanation =
     "A bull call spread uses a long call at a lower strike and a short call at a higher strike. It benefits from a moderate rise in the stock price while limiting both risk and reward.";
 }
-  }
 
   const status = payoff >= 0 ? "Profitable at current stock price" : "Loss at current stock price";
 
@@ -896,6 +894,10 @@ if (strategy === "longPut") {
 
 if (strategy === "straddle") {
   breakevenValue = K + premium * 2;
+}
+
+if (strategy === "bullCallSpread") {
+  breakevenValue = K + premium;
 }
 
 ctx.strokeStyle = "#16a34a";
