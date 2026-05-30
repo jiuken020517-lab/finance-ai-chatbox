@@ -824,12 +824,51 @@ function drawPayoffChart(strategy, K, premium) {
 
   ctx.stroke();
 
-  // Labels
-  ctx.fillStyle = "#1e293b";
-  ctx.font = "14px Arial";
-  ctx.fillText("Stock Price", width / 2 - 40, height - 15);
-  ctx.fillText("Profit / Loss", 10, 25);
-  ctx.fillText("K = " + K, xScale(K) - 15, height - 30);
+  // Strike line
+ctx.strokeStyle = "#f97316";
+ctx.lineWidth = 2;
+ctx.setLineDash([5, 5]);
+ctx.beginPath();
+ctx.moveTo(xScale(K), 30);
+ctx.lineTo(xScale(K), height - 50);
+ctx.stroke();
+ctx.setLineDash([]);
+
+// Breakeven line
+let breakevenValue = K;
+
+if (strategy === "longCall") {
+  breakevenValue = K + premium;
+}
+
+if (strategy === "longPut") {
+  breakevenValue = K - premium;
+}
+
+if (strategy === "straddle") {
+  breakevenValue = K + premium * 2;
+}
+
+ctx.strokeStyle = "#16a34a";
+ctx.lineWidth = 2;
+ctx.setLineDash([5, 5]);
+ctx.beginPath();
+ctx.moveTo(xScale(breakevenValue), 30);
+ctx.lineTo(xScale(breakevenValue), height - 50);
+ctx.stroke();
+ctx.setLineDash([]);
+
+// Labels
+ctx.fillStyle = "#1e293b";
+ctx.font = "14px Arial";
+ctx.fillText("Stock Price", width / 2 - 40, height - 15);
+ctx.fillText("Profit / Loss", 10, 25);
+
+ctx.fillStyle = "#f97316";
+ctx.fillText("Strike K = " + K, xScale(K) - 35, height - 30);
+
+ctx.fillStyle = "#16a34a";
+ctx.fillText("Breakeven = " + breakevenValue.toFixed(2), xScale(breakevenValue) - 55, 25);
 }
 
 
