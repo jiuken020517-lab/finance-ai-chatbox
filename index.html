@@ -1221,12 +1221,24 @@ function calculatePOP() {
   let probabilityITM = 0;
   let probabilityOTM = 0;
   let probabilityProfit = 0;
+  let popLevel = "";
+  let popComment = "";
 
   if (type === "call") {
     probabilityITM = probAboveK;
     probabilityOTM = probBelowK;
     probabilityProfit = probAboveK;
   }
+  if (probabilityProfit >= 0.6) {
+  popLevel = "High POP";
+  popComment = "This option has a relatively high probability of finishing profitable.";
+  } else if (probabilityProfit >= 0.4) {
+  popLevel = "Moderate POP";
+  popComment = "This option has a balanced probability profile.";
+  } else {
+  popLevel = "Low POP";
+  popComment = "This option has a lower probability of finishing profitable, but may offer higher reward if the move happens.";
+}
 
   if (type === "put") {
     probabilityITM = probBelowK;
@@ -1249,6 +1261,8 @@ function calculatePOP() {
       <tr><td>Probability ITM</td><td>${(probabilityITM * 100).toFixed(2)}%</td></tr>
       <tr><td>Probability OTM</td><td>${(probabilityOTM * 100).toFixed(2)}%</td></tr>
       <tr><td>Estimated POP</td><td>${(probabilityProfit * 100).toFixed(2)}%</td></tr>
+      <tr><td>POP Level</td><td>${popLevel}</td></tr>
+      <tr><td>Interpretation</td><td>${popComment}</td></tr>
     </table>
 
     <p>
