@@ -1540,8 +1540,152 @@ function generatePDFReport() {
   doc.setFontSize(18);
   doc.text("Finance AI Platform Report", 20, y);
 
+  y += 20;
+
+  doc.setFontSize(16);
+  doc.text("Executive Summary",20,y);
+
   y += 10;
+
+  const popText =
+  document.getElementById("popResult")?.innerText || "";
+
+const volText =
+  document.getElementById("volResult")?.innerText || "";
+
+const portfolioText =
+  document.getElementById("portfolioGreeksResult")?.innerText || "";
+
+const riskText =
+  document.getElementById("riskResult")?.innerText || "";
+
+let summary = [];
+
+if (popText.includes("High POP")) {
+
+  summary.push(
+    "Probability: High POP"
+  );
+
+}
+else if (popText.includes("Moderate POP")) {
+
+  summary.push(
+    "Probability: Moderate POP"
+  );
+
+}
+else if (popText.includes("Low POP")) {
+
+  summary.push(
+    "Probability: Low POP"
+  );
+
+}
+
+if (
+  volText.includes("expensive")
+) {
+
+  summary.push(
+    "Volatility: Options appear expensive"
+  );
+
+}
+
+if (
+  volText.includes("cheap")
+) {
+
+  summary.push(
+    "Volatility: Options appear cheap"
+  );
+
+}
+
+if (
+  portfolioText.includes("Bullish")
+) {
+
+  summary.push(
+    "Portfolio Outlook: Bullish"
+  );
+
+}
+
+if (
+  portfolioText.includes("Bearish")
+) {
+
+  summary.push(
+    "Portfolio Outlook: Bearish"
+  );
+
+}
+
+if (
+  portfolioText.includes("Neutral")
+) {
+
+  summary.push(
+    "Portfolio Outlook: Delta Neutral"
+  );
+
+}
+if (
+  riskText.includes("Delta")
+) {
+
+  summary.push(
+    "Main Risk Driver: Delta"
+  );
+
+}
+
+if (
+  riskText.includes("Gamma")
+) {
+
+  summary.push(
+    "Main Risk Driver: Gamma"
+  );
+
+}
+
+if (
+  riskText.includes("Vega")
+) {
+
+  summary.push(
+    "Main Risk Driver: Vega"
+  );
+
+}
+
+if (
+  riskText.includes("Theta")
+) {
+
+  summary.push(
+    "Main Risk Driver: Theta"
+  );
+
+}
+
+
+  
   doc.setFontSize(10);
+  summary.forEach(item => {
+
+  doc.text(
+    "• " + item,
+    25,
+    y
+  );
+
+  y += 8;
+
+});
   doc.text("Generated: " + new Date().toLocaleString(), 20, y);
 
   y += 15;
