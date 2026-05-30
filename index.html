@@ -306,10 +306,13 @@ canvas {
     <option value="longPut">Long Put</option>
     <option value="straddle">Straddle</option>
     <option value="coveredCall">Covered Call</option>
+    <option value="bullCallSpread">Bull Call Spread</option>
   </select>
 
   <label>Strike Price (K)</label>
   <input id="strategyK" value="300">
+  <label>Short Strike Price (K2)</label>
+<input id="strategyK2" value="330">
 
   <label>Premium Paid / Received</label>
   <input id="strategyPremium" value="12">
@@ -704,6 +707,7 @@ function calculatePnL() {
 function analyzeStrategy() {
   const strategy = document.getElementById("strategyType").value;
   const K = Number(document.getElementById("strategyK").value);
+  const K2 = Number(document.getElementById("strategyK2").value);
   const premium = Number(document.getElementById("strategyPremium").value);
   const S = Number(document.getElementById("strategyS").value);
 
@@ -748,6 +752,15 @@ function analyzeStrategy() {
     breakeven = (S - premium).toFixed(2);
     payoff = Math.min(S, K) - S + premium;
     explanation = "A covered call earns premium income but caps upside above the strike price.";
+    if (strategy === "bullCallSpread") {
+   name = "Bull Call Spread";
+   maxProfit = (K2 - K - premium).toFixed(2);
+   maxLoss = premium.toFixed(2);
+   breakeven = (K + premium).toFixed(2);
+   payoff = Math.max(S - K, 0) - Math.max(S - K2, 0) - premium;
+   explanation =
+    "A bull call spread uses a long call at a lower strike and a short call at a higher strike. It benefits from a moderate rise in the stock price while limiting both risk and reward.";
+}
   }
 
   const status = payoff >= 0 ? "Profitable at current stock price" : "Loss at current stock price";
@@ -805,6 +818,10 @@ function drawPayoffChart(strategy, K, premium) {
     if (strategy === "coveredCall") {
       payoff = Math.min(S, K) - K + premium;
     }
+    if (strategy === "bullCallSpread") {
+  const K2 = Number(document.getElementById("strategyK2").value);
+  payoff = Math.max(S - K, 0) - Math.max(S - K2, 0) - premium;
+}
 
     points.push({ S, payoff });
   }
@@ -936,6 +953,13 @@ if (strategy === "straddle") {
 
 if (strategy === "coveredCall") {
   currentPayoff = Math.min(currentPrice, K) - K + premium;
+}
+if (strategy === "bullCallSpread") {
+  const K2 = Number(document.getElementById("strategyK2").value);
+  currentPayoff =
+    Math.max(currentPrice - K, 0) -
+    Math.max(currentPrice - K2, 0) -
+    premium;
 }
 
 ctx.fillStyle = "#dc2626";
