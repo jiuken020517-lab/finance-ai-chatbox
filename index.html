@@ -743,6 +743,9 @@ function analyzeStrategy() {
     breakeven = `${(K + premium * 2).toFixed(2)} / ${(K - premium * 2).toFixed(2)}`;
     payoff = Math.max(S - K, 0) + Math.max(K - S, 0) - premium * 2;
     explanation = "A long straddle benefits from large price movement in either direction.";
+    if (strategy === "bullCallSpread") {
+  breakevenValue = K + premium;
+}
   }
 
   if (strategy === "coveredCall") {
@@ -969,7 +972,7 @@ ctx.beginPath();
 ctx.arc(
   xScale(currentPrice),
   yScale(currentPayoff),
-  10,
+  7,
   0,
   Math.PI * 2
 );
@@ -982,8 +985,8 @@ ctx.stroke();
 
 ctx.fillText(
   "Current",
-  xScale(currentPrice) + 8,
-  yScale(currentPayoff) - 8
+  xScale(currentPrice) + 15,
+  yScale(currentPayoff) - 15
 );
 
 ctx.fillStyle = "#dc2626";
