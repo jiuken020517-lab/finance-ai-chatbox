@@ -879,7 +879,7 @@ ctx.fillText("Stock Price", width / 2 - 40, height - 15);
 ctx.fillText("Profit / Loss", 10, 25);
 
 ctx.fillStyle = "#f97316";
-ctx.fillText("Strike K = " + K, xScale(K) - 35, height - 30);
+ctx.fillText("Strike", xScale(K) - 20, height - 55);
 
 ctx.fillStyle = "#16a34a";
 ctx.fillText("Breakeven = " + breakevenValue.toFixed(2), xScale(breakevenValue) - 55, 25);
@@ -916,17 +916,29 @@ ctx.beginPath();
 ctx.arc(
   xScale(currentPrice),
   yScale(currentPayoff),
-  6,
+  10,
   0,
   Math.PI * 2
 );
 
 ctx.fill();
 
+ctx.strokeStyle = "#ffffff";
+ctx.lineWidth = 3;
+ctx.stroke();
+
 ctx.fillText(
   "Current",
   xScale(currentPrice) + 8,
   yScale(currentPayoff) - 8
+);
+
+ctx.fillStyle = "#dc2626";
+
+ctx.fillText(
+  "P&L = " + currentPayoff.toFixed(2),
+  xScale(currentPrice) + 15,
+  yScale(currentPayoff) + 10
 );
 }
 
