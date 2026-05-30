@@ -724,7 +724,6 @@ function analyzeStrategy() {
   const status = payoff >= 0 ? "Profitable at current stock price" : "Loss at current stock price";
 
   document.getElementById("strategyResult").innerHTML = `
-  drawPayoffChart(strategy, K, premium);
     <h3>${name} Result</h3>
 
     <table>
@@ -742,6 +741,8 @@ function analyzeStrategy() {
 
     <p>${explanation}</p>
   `;
+
+drawPayoffChart(strategy, K, premium);
 }
 function drawPayoffChart(strategy, K, premium) {
   const canvas = document.getElementById("payoffChart");
