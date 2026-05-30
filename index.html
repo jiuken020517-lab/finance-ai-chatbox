@@ -857,24 +857,20 @@ ctx.moveTo(xScale(breakevenValue), 30);
 ctx.lineTo(xScale(breakevenValue), height - 50);
 ctx.stroke();
 ctx.setLineDash([]);
+// Current stock price
+const currentPrice = Number(document.getElementById("strategyS").value);
+
 // Current stock price line
 ctx.strokeStyle = "#dc2626";
 ctx.lineWidth = 2;
 ctx.setLineDash([8, 4]);
 
 ctx.beginPath();
-ctx.moveTo(xScale(document.getElementById("strategyS").value), 30);
-ctx.lineTo(xScale(document.getElementById("strategyS").value), height - 50);
+ctx.moveTo(xScale(currentPrice), 30);
+ctx.lineTo(xScale(currentPrice), height - 50);
 ctx.stroke();
 
 ctx.setLineDash([]);
-
-ctx.fillStyle = "#dc2626";
-ctx.fillText(
-  "Current Price",
-  xScale(document.getElementById("strategyS").value) - 35,
-  45
-);
 
 // Labels
 ctx.fillStyle = "#1e293b";
@@ -887,15 +883,52 @@ ctx.fillText("Strike K = " + K, xScale(K) - 35, height - 30);
 
 ctx.fillStyle = "#16a34a";
 ctx.fillText("Breakeven = " + breakevenValue.toFixed(2), xScale(breakevenValue) - 55, 25);
-ctx.fillStyle = "#dc2626";
 
-ctx.fillText(
-  "Current = " + currentPrice.toFixed(2),
-  xScale(currentPrice) - 40,
-  45
-);
+ctx.fillStyle = "#dc2626";
+ctx.fillText("Current = " + currentPrice.toFixed(2), xScale(currentPrice) - 40, 45);
+
+// Current position marker
+let currentPayoff = 0;
+
+if (strategy === "longCall") {
+  currentPayoff = Math.max(currentPrice - K, 0) - premium;
 }
 
+if (strategy === "longPut") {
+  currentPayoff = Math.max(K - currentPrice, 0) - premium;
+}
+
+if (strategy === "straddle") {
+  currentPayoff =
+    Math.max(currentPrice - K, 0) +
+    Math.max(K - currentPrice, 0) -
+    premium * 2;
+}
+
+if (strategy === "coveredCall") {
+  currentPayoff = Math.min(currentPrice, K) - K + premium;
+}
+
+ctx.fillStyle = "#dc2626";
+
+ctx.beginPath();
+
+ctx.arc(
+  xScale(currentPrice),
+  yScale(currentPayoff),
+  6,
+  0,
+  Math.PI * 2
+);
+
+ctx.fill();
+
+ctx.fillText(
+  "Current",
+  xScale(currentPrice) + 8,
+  yScale(currentPayoff) - 8
+);
+}
 
     async function sendMessage() {
       const messageBox = document.getElementById("message");
