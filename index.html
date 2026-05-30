@@ -245,6 +245,7 @@ canvas {
   <button onclick="showOptionTool('volTool')">Volatility Lab</button>
   <button onclick="showOptionTool('popTool')">Probability of Profit</button>
   <button onclick="showOptionTool('portfolioGreeksTool')">Portfolio Greeks</button>
+  <button onclick="showOptionTool('riskTool')">Risk Decomposition</button>
   
   
   <div id="bsTool">
@@ -464,6 +465,44 @@ Calculate Portfolio Greeks
 <div id="portfolioGreeksResult"></div>
 
 </div>
+<div id="riskTool" style="display:none;">
+
+  <h2>Risk Decomposition Dashboard</h2>
+
+  <label>Delta</label>
+  <input id="riskDelta" value="0.55">
+
+  <label>Gamma</label>
+  <input id="riskGamma" value="0.02">
+
+  <label>Vega</label>
+  <input id="riskVega" value="25">
+
+  <label>Theta Daily</label>
+  <input id="riskTheta" value="-0.08">
+
+  <label>Price Change</label>
+  <input id="riskPriceChange" value="5">
+
+  <label>IV Change</label>
+  <input id="riskIVChange" value="0.01">
+
+  <label>Days Passed</label>
+  <input id="riskDays" value="2">
+
+  <label>Contracts</label>
+  <input id="riskContracts" value="1">
+
+  <label>Multiplier</label>
+  <input id="riskMultiplier" value="100">
+
+  <button onclick="calculateRiskDecomposition()">
+    Calculate Risk Decomposition
+  </button>
+
+  <div id="riskResult"></div>
+
+</div>
 
   <script>
     let conversation = [];
@@ -492,6 +531,7 @@ function showOptionTool(toolId) {
   document.getElementById("volTool").style.display = "none";
   document.getElementById("popTool").style.display = "none";
   document.getElementById("portfolioGreeksTool").style.display = "none";
+  document.getElementById("riskTool").style.display = "none";
 
   document.getElementById(toolId).style.display = "block";
 }
@@ -1399,6 +1439,92 @@ function calculatePortfolioGreeks() {
 
   </table>
 
+  `;
+}
+function calculateRiskDecomposition() {
+  const delta = Number(document.getElementById("riskDelta").value);
+  const gamma = Number(document.getElementById("riskGamma").value);
+  const vega = Number(document.getElementById("riskVega").value);
+  const theta = Number(document.getElementById("riskTheta").value);
+
+  const priceChange = Number(document.getElementById("riskPriceChange").value);
+  const ivChange = Number(document.getElementById("riskIVChange").value);
+  const days = Number(document.getElementById("riskDays").value);
+
+  const contracts = Number(document.getElementById("riskContracts").value);
+  const multiplier = Number(document.getElementById("riskMultiplier").value);
+
+  const deltaPnL = delta * priceChange * contracts * multiplier;
+
+  const gammaPnL =
+    0.5 * gamma * priceChange * priceChange * contracts * multiplier;
+
+  const vegaPnL = vega * ivChange * contracts;
+
+  const thetaPnL = theta * days * contracts * multiplier;
+
+  const totalPnL =
+    deltaPnL + gammaPnL + vegaPnL + thetaPnL;
+
+  let mainDriver = "Mixed factors";
+
+  const values = [
+    { name: "Delta", value: Math.abs(deltaPnL) },
+    { name: "Gamma", value: Math.abs(gammaPnL) },
+    { name: "Vega", value: Math.abs(vegaPnL) },
+    { name: "Theta", value: Math.abs(thetaPnL) }
+  ];
+
+  values.sort((a, b) => b.value - a.value);
+
+  mainDriver = values[0].name;
+
+  document.getElementById("riskResult").innerHTML = `
+    <h3>Risk Decomposition Result</h3>
+
+    <table>
+      <tr>
+        <th>Component</th>
+        <th>P&L</th>
+        <th>Meaning</th>
+      </tr>
+
+      <tr>
+        <td>Delta P&L</td>
+        <td>${deltaPnL.toFixed(2)}</td>
+        <td>Profit or loss from price direction.</td>
+      </tr>
+
+      <tr>
+        <td>Gamma P&L</td>
+        <td>${gammaPnL.toFixed(2)}</td>
+        <td>Profit or loss from convexity.</td>
+      </tr>
+
+      <tr>
+        <td>Vega P&L</td>
+        <td>${vegaPnL.toFixed(2)}</td>
+        <td>Profit or loss from IV change.</td>
+      </tr>
+
+      <tr>
+        <td>Theta P&L</td>
+        <td>${thetaPnL.toFixed(2)}</td>
+        <td>Profit or loss from time decay.</td>
+      </tr>
+
+      <tr>
+        <td><strong>Total P&L</strong></td>
+        <td><strong>${totalPnL.toFixed(2)}</strong></td>
+        <td>Total estimated option P&L.</td>
+      </tr>
+
+      <tr>
+        <td>Main Driver</td>
+        <td>${mainDriver}</td>
+        <td>The largest absolute P&L contributor.</td>
+      </tr>
+    </table>
   `;
 }
 
