@@ -244,6 +244,7 @@ canvas {
   <button onclick="showOptionTool('greeksTool')">Greeks Exposure</button>
   <button onclick="showOptionTool('volTool')">Volatility Lab</button>
   <button onclick="showOptionTool('popTool')">Probability of Profit</button>
+  <button onclick="showOptionTool('portfolioGreeksTool')">Portfolio Greeks</button>
   
   
   <div id="bsTool">
@@ -420,6 +421,49 @@ canvas {
 
   <div id="popResult"></div>
 </div>
+<div id="portfolioGreeksTool" style="display:none;">
+
+<h2>Portfolio Greeks Dashboard</h2>
+
+<label>Position 1 Delta</label>
+<input id="delta1" value="0.55">
+
+<label>Position 1 Gamma</label>
+<input id="gamma1" value="0.02">
+
+<label>Position 1 Vega</label>
+<input id="vega1" value="25">
+
+<label>Position 1 Theta</label>
+<input id="theta1" value="-0.08">
+
+<label>Position 1 Contracts</label>
+<input id="contracts1" value="3">
+
+<hr>
+
+<label>Position 2 Delta</label>
+<input id="delta2" value="-0.40">
+
+<label>Position 2 Gamma</label>
+<input id="gamma2" value="0.01">
+
+<label>Position 2 Vega</label>
+<input id="vega2" value="18">
+
+<label>Position 2 Theta</label>
+<input id="theta2" value="-0.05">
+
+<label>Position 2 Contracts</label>
+<input id="contracts2" value="2">
+
+<button onclick="calculatePortfolioGreeks()">
+Calculate Portfolio Greeks
+</button>
+
+<div id="portfolioGreeksResult"></div>
+
+</div>
 
   <script>
     let conversation = [];
@@ -447,6 +491,7 @@ function showOptionTool(toolId) {
   document.getElementById("greeksTool").style.display = "none";
   document.getElementById("volTool").style.display = "none";
   document.getElementById("popTool").style.display = "none";
+  document.getElementById("portfolioGreeksTool").style.display = "none";
 
   document.getElementById(toolId).style.display = "block";
 }
@@ -1268,6 +1313,92 @@ function calculatePOP() {
     <p>
       Note: This is a simplified probability estimate based on implied volatility and lognormal price movement assumptions.
     </p>
+  `;
+}
+function calculatePortfolioGreeks() {
+
+  const d1 = Number(document.getElementById("delta1").value);
+  const g1 = Number(document.getElementById("gamma1").value);
+  const v1 = Number(document.getElementById("vega1").value);
+  const t1 = Number(document.getElementById("theta1").value);
+  const c1 = Number(document.getElementById("contracts1").value);
+
+  const d2 = Number(document.getElementById("delta2").value);
+  const g2 = Number(document.getElementById("gamma2").value);
+  const v2 = Number(document.getElementById("vega2").value);
+  const t2 = Number(document.getElementById("theta2").value);
+  const c2 = Number(document.getElementById("contracts2").value);
+
+  const multiplier = 100;
+
+  const netDelta =
+    d1 * c1 * multiplier +
+    d2 * c2 * multiplier;
+
+  const netGamma =
+    g1 * c1 * multiplier +
+    g2 * c2 * multiplier;
+
+  const netVega =
+    v1 * c1 +
+    v2 * c2;
+
+  const netTheta =
+    t1 * c1 * multiplier +
+    t2 * c2 * multiplier;
+
+  let outlook = "";
+
+  if (netDelta > 50) {
+    outlook = "Bullish Portfolio";
+  }
+  else if (netDelta < -50) {
+    outlook = "Bearish Portfolio";
+  }
+  else {
+    outlook = "Delta Neutral Portfolio";
+  }
+
+  document.getElementById(
+    "portfolioGreeksResult"
+  ).innerHTML = `
+
+  <h3>Portfolio Greeks Result</h3>
+
+  <table>
+
+    <tr>
+      <th>Metric</th>
+      <th>Value</th>
+    </tr>
+
+    <tr>
+      <td>Net Delta</td>
+      <td>${netDelta.toFixed(2)}</td>
+    </tr>
+
+    <tr>
+      <td>Net Gamma</td>
+      <td>${netGamma.toFixed(4)}</td>
+    </tr>
+
+    <tr>
+      <td>Net Vega</td>
+      <td>${netVega.toFixed(2)}</td>
+    </tr>
+
+    <tr>
+      <td>Net Theta</td>
+      <td>${netTheta.toFixed(2)}</td>
+    </tr>
+
+    <tr>
+      <td>Portfolio Outlook</td>
+      <td>${outlook}</td>
+    </tr>
+
+  </table>
+
   `;
 }
 
