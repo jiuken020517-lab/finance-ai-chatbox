@@ -242,6 +242,7 @@ canvas {
   <button onclick="showOptionTool('pnlTool')">Option P&L</button>
   <button onclick="showOptionTool('strategyTool')">Strategy Analyzer</button>
   <button onclick="showOptionTool('greeksTool')">Greeks Exposure</button>
+  <button onclick="showOptionTool('volTool')">Volatility Lab</button>
   
   
   <div id="bsTool">
@@ -372,9 +373,26 @@ canvas {
   <button onclick="calculatePnL()">Calculate P&L</button>
 
   <div id="pnlResult"></div>
+  
+</div>
 
+<div id="volTool" style="display:none;">
 
-  </div>
+  <h2>Volatility Lab</h2>
+
+  <label>Implied Volatility (%)</label>
+  <input id="ivInput" value="35">
+
+  <label>Realized Volatility (%)</label>
+  <input id="rvInput" value="22">
+
+  <button onclick="analyzeVolatility()">
+    Analyze Volatility
+  </button>
+
+  <div id="volResult"></div>
+
+</div>
 
   <script>
     let conversation = [];
@@ -400,6 +418,7 @@ function showOptionTool(toolId) {
   document.getElementById("pnlTool").style.display = "none";
   document.getElementById("strategyTool").style.display = "none";
   document.getElementById("greeksTool").style.display = "none";
+  document.getElementById("volTool").style.display = "none";
 
   document.getElementById(toolId).style.display = "block";
 }
@@ -1077,6 +1096,79 @@ function calculateGreeksExposure() {
         <td>Total Theta Daily</td>
         <td>${totalTheta.toFixed(2)}</td>
         <td>Estimated daily time decay.</td>
+      </tr>
+    </table>
+  `;
+}
+function analyzeVolatility() {
+
+  const iv =
+    Number(document.getElementById("ivInput").value);
+
+  const rv =
+    Number(document.getElementById("rvInput").value);
+
+  const premium = iv - rv;
+
+  let verdict = "";
+  let suggestion = "";
+
+  if (premium > 5) {
+
+    verdict =
+      "Options appear expensive.";
+
+    suggestion =
+      "Covered Call, Iron Condor, Short Strangle";
+
+  } else if (premium < -5) {
+
+    verdict =
+      "Options appear cheap.";
+
+    suggestion =
+      "Long Call, Long Put, Straddle";
+
+  } else {
+
+    verdict =
+      "Options appear fairly priced.";
+
+    suggestion =
+      "No strong volatility edge.";
+
+  }
+
+  document.getElementById("volResult").innerHTML = `
+    <table>
+      <tr>
+        <th>Metric</th>
+        <th>Value</th>
+      </tr>
+
+      <tr>
+        <td>IV</td>
+        <td>${iv.toFixed(2)}%</td>
+      </tr>
+
+      <tr>
+        <td>RV</td>
+        <td>${rv.toFixed(2)}%</td>
+      </tr>
+
+      <tr>
+        <td>IV Premium</td>
+        <td>${premium.toFixed(2)}%</td>
+      </tr>
+
+      <tr>
+        <td>Assessment</td>
+        <td>${verdict}</td>
+      </tr>
+
+      <tr>
+        <td>Suggested Strategies</td>
+        <td>${suggestion}</td>
       </tr>
     </table>
   `;
