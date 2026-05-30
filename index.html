@@ -231,6 +231,7 @@ button:hover {
 
   <button onclick="showOptionTool('bsTool')">Black-Scholes / IV Solver</button>
   <button onclick="showOptionTool('pnlTool')">Option P&L</button>
+  <button onclick="showOptionTool('strategyTool')">Strategy Analyzer</button>
 
   <div id="bsTool">
     <h2>Black-Scholes Calculator</h2>
@@ -284,6 +285,30 @@ button:hover {
 
     <div id="pnlResult"></div>
   </div>
+
+    <div id="strategyTool" style="display:none;">
+  <h2>Option Strategy Analyzer</h2>
+
+  <label>Strategy</label>
+  <select id="strategyType">
+    <option value="longCall">Long Call</option>
+    <option value="longPut">Long Put</option>
+    <option value="straddle">Straddle</option>
+    <option value="coveredCall">Covered Call</option>
+  </select>
+
+  <label>Strike Price (K)</label>
+  <input id="strategyK" value="300">
+
+  <label>Premium Paid / Received</label>
+  <input id="strategyPremium" value="12">
+
+  <label>Stock Price (S)</label>
+  <input id="strategyS" value="300">
+
+  <button onclick="analyzeStrategy()">Analyze Strategy</button>
+
+  <div id="strategyResult"></div>
 </div>
 
     <div id="pnlSection" style="display:none;">
@@ -331,6 +356,7 @@ button:hover {
 function showOptionTool(toolId) {
   document.getElementById("bsTool").style.display = "none";
   document.getElementById("pnlTool").style.display = "none";
+  document.getElementById("strategyTool").style.display = "none";
 
   document.getElementById(toolId).style.display = "block";
 }
@@ -636,6 +662,76 @@ function calculatePnL() {
   `;
 }
 
+function analyzeStrategy() {
+  const strategy = document.getElementById("strategyType").value;
+  const K = Number(document.getElementById("strategyK").value);
+  const premium = Number(document.getElementById("strategyPremium").value);
+  const S = Number(document.getElementById("strategyS").value);
+
+  let name = "";
+  let maxProfit = "";
+  let maxLoss = "";
+  let breakeven = "";
+  let payoff = 0;
+  let explanation = "";
+
+  if (strategy === "longCall") {
+    name = "Long Call";
+    maxProfit = "Unlimited";
+    maxLoss = premium.toFixed(2);
+    breakeven = (K + premium).toFixed(2);
+    payoff = Math.max(S - K, 0) - premium;
+    explanation = "A long call benefits when the stock price rises above the strike price plus premium.";
+  }
+
+  if (strategy === "longPut") {
+    name = "Long Put";
+    maxProfit = (K - premium).toFixed(2);
+    maxLoss = premium.toFixed(2);
+    breakeven = (K - premium).toFixed(2);
+    payoff = Math.max(K - S, 0) - premium;
+    explanation = "A long put benefits when the stock price falls below the strike price minus premium.";
+  }
+
+  if (strategy === "straddle") {
+    name = "Long Straddle";
+    maxProfit = "Unlimited";
+    maxLoss = (premium * 2).toFixed(2);
+    breakeven = `${(K + premium * 2).toFixed(2)} / ${(K - premium * 2).toFixed(2)}`;
+    payoff = Math.max(S - K, 0) + Math.max(K - S, 0) - premium * 2;
+    explanation = "A long straddle benefits from large price movement in either direction.";
+  }
+
+  if (strategy === "coveredCall") {
+    name = "Covered Call";
+    maxProfit = "Limited";
+    maxLoss = "Stock downside risk reduced by premium";
+    breakeven = (S - premium).toFixed(2);
+    payoff = Math.min(S, K) - S + premium;
+    explanation = "A covered call earns premium income but caps upside above the strike price.";
+  }
+
+  const status = payoff >= 0 ? "Profitable at current stock price" : "Loss at current stock price";
+
+  document.getElementById("strategyResult").innerHTML = `
+    <h3>${name} Result</h3>
+
+    <table>
+      <tr><th>Metric</th><th>Value</th></tr>
+      <tr><td>Strategy</td><td>${name}</td></tr>
+      <tr><td>Stock Price</td><td>${S.toFixed(2)}</td></tr>
+      <tr><td>Strike Price</td><td>${K.toFixed(2)}</td></tr>
+      <tr><td>Premium</td><td>${premium.toFixed(2)}</td></tr>
+      <tr><td>Max Profit</td><td>${maxProfit}</td></tr>
+      <tr><td>Max Loss</td><td>${maxLoss}</td></tr>
+      <tr><td>Breakeven</td><td>${breakeven}</td></tr>
+      <tr><td>Estimated Payoff</td><td>${payoff.toFixed(2)}</td></tr>
+      <tr><td>Status</td><td>${status}</td></tr>
+    </table>
+
+    <p>${explanation}</p>
+  `;
+}
 
 
     async function sendMessage() {
