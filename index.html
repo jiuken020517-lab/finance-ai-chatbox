@@ -168,6 +168,15 @@ button:hover {
   color: #64748b;
   line-height: 1.6;
 }
+
+canvas {
+  background: white;
+  margin-top: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  width: 100%;
+}
+
   </style>
 </head>
 
@@ -309,6 +318,7 @@ button:hover {
   <button onclick="analyzeStrategy()">Analyze Strategy</button>
 
   <div id="strategyResult"></div>
+  <canvas id="payoffChart" width="700" height="400"></canvas>
 </div>
 
     <div id="pnlSection" style="display:none;">
@@ -714,6 +724,7 @@ function analyzeStrategy() {
   const status = payoff >= 0 ? "Profitable at current stock price" : "Loss at current stock price";
 
   document.getElementById("strategyResult").innerHTML = `
+  drawPayoffChart(strategy, K, premium);
     <h3>${name} Result</h3>
 
     <table>
@@ -731,6 +742,93 @@ function analyzeStrategy() {
 
     <p>${explanation}</p>
   `;
+}
+function drawPayoffChart(strategy, K, premium) {
+  const canvas = document.getElementById("payoffChart");
+  const ctx = canvas.getContext("2d");
+
+  const width = canvas.width;
+  const height = canvas.height;
+
+  ctx.clearRect(0, 0, width, height);
+
+  const minS = K * 0.5;
+  const maxS = K * 1.5;
+
+  const points = [];
+
+  for (let S = minS; S <= maxS; S += (maxS - minS) / 100) {
+    let payoff = 0;
+
+    if (strategy === "longCall") {
+      payoff = Math.max(S - K, 0) - premium;
+    }
+
+    if (strategy === "longPut") {
+      payoff = Math.max(K - S, 0) - premium;
+    }
+
+    if (strategy === "straddle") {
+      payoff = Math.max(S - K, 0) + Math.max(K - S, 0) - premium * 2;
+    }
+
+    if (strategy === "coveredCall") {
+      payoff = Math.min(S, K) - K + premium;
+    }
+
+    points.push({ S, payoff });
+  }
+
+  const minPayoff = Math.min(...points.map(p => p.payoff));
+  const maxPayoff = Math.max(...points.map(p => p.payoff));
+
+  function xScale(S) {
+    return ((S - minS) / (maxS - minS)) * (width - 80) + 50;
+  }
+
+  function yScale(payoff) {
+    return height - 50 - ((payoff - minPayoff) / (maxPayoff - minPayoff)) * (height - 100);
+  }
+
+  ctx.strokeStyle = "#94a3b8";
+  ctx.lineWidth = 1;
+
+  // X-axis
+  ctx.beginPath();
+  ctx.moveTo(50, yScale(0));
+  ctx.lineTo(width - 30, yScale(0));
+  ctx.stroke();
+
+  // Y-axis
+  ctx.beginPath();
+  ctx.moveTo(50, 30);
+  ctx.lineTo(50, height - 50);
+  ctx.stroke();
+
+  // Payoff line
+  ctx.strokeStyle = "#2563eb";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+
+  points.forEach((point, index) => {
+    const x = xScale(point.S);
+    const y = yScale(point.payoff);
+
+    if (index === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+
+  ctx.stroke();
+
+  // Labels
+  ctx.fillStyle = "#1e293b";
+  ctx.font = "14px Arial";
+  ctx.fillText("Stock Price", width / 2 - 40, height - 15);
+  ctx.fillText("Profit / Loss", 10, 25);
+  ctx.fillText("K = " + K, xScale(K) - 15, height - 30);
 }
 
 
