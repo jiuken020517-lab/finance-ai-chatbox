@@ -540,6 +540,7 @@ Calculate Portfolio Greeks
   </button>
 
   <div id="optionChainResult"></div>
+  <div id="optionChainAI"></div>
   <canvas id="ivSmileChart" width="700" height="400"></canvas>
 
 </div>
@@ -1965,6 +1966,104 @@ function analyzeOptionChain() {
         <tr><td>Market Sentiment</td><td>${sentiment}</td></tr>
       </table>
     `;
+    let aiComment = "";
+
+if (putCallRatio < 0.8) {
+
+  aiComment +=
+    "<p><b>Market Sentiment:</b> Bullish positioning detected.</p>";
+
+} else if (putCallRatio > 1.2) {
+
+  aiComment +=
+    "<p><b>Market Sentiment:</b> Bearish positioning detected.</p>";
+
+} else {
+
+  aiComment +=
+    "<p><b>Market Sentiment:</b> Neutral positioning.</p>";
+}
+
+aiComment += `
+<p>
+<b>Highest Call OI:</b>
+${highestCallStrike}
+</p>
+
+<p>
+<b>Highest Put OI:</b>
+${highestPutStrike}
+</p>
+
+<p>
+<b>Max Pain:</b>
+${maxPainStrike}
+</p>
+
+<p>
+  Price may gravitate towards max pain strike as expiration approaches.
+</p>
+`;
+if (highestCallStrike > highestPutStrike) {
+  aiComment += `
+  <p>
+  Call open interest is concentrated above current levels,
+  suggesting bullish expectations.
+  </p>
+  `;
+}
+else if (highestPutStrike > highestCallStrike) {
+
+  aiComment += `
+  <p>
+  Put open interest is concentrated below current levels,
+  suggesting bearish positioning.
+  </p>
+  `;
+
+}
+else {
+
+  aiComment += `
+  <p>
+  Call and put open interest are concentrated at the same strike,
+  suggesting balanced market positioning.
+  </p>
+  `;
+
+}
+let suggestedStrategy = "";
+
+if (putCallRatio < 0.8) {
+
+  suggestedStrategy =
+    "Bull Call Spread / Cash Secured Put";
+
+}
+else if (putCallRatio > 1.2) {
+
+  suggestedStrategy =
+    "Bear Put Spread / Protective Put";
+
+}
+else {
+
+  suggestedStrategy =
+    "Iron Condor / Covered Call";
+}
+
+aiComment += `
+<p>
+<b>Suggested Strategies:</b>
+${suggestedStrategy}
+</p>
+`;
+document.getElementById(
+  "optionChainAI"
+).innerHTML = `
+<h3>AI Interpretation</h3>
+${aiComment}
+`;
 
     drawIVSmileChart(rows);
   };
