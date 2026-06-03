@@ -179,6 +179,17 @@ canvas {
   box-shadow: 0 2px 10px rgba(0,0,0,0.08);
   width: 100%;
 }
+.info-box {
+  background: #f8fafc;
+  border-left: 4px solid #2563eb;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.info-box p {
+  margin: 8px 0;
+}
 
   </style>
 </head>
@@ -542,6 +553,41 @@ Calculate Portfolio Greeks
   <div id="optionChainResult"></div>
   <div id="optionChainAI"></div>
   <canvas id="ivSmileChart" width="700" height="400"></canvas>
+
+</div>
+<div class="info-box">
+
+<h3>Option Chain Guide</h3>
+
+<p>
+<b>Strike</b>:
+Option exercise price.
+</p>
+
+<p>
+<b>Call OI</b>:
+Number of outstanding call option contracts.
+</p>
+
+<p>
+<b>Put OI</b>:
+Number of outstanding put option contracts.
+</p>
+
+<p>
+<b>Call Volume</b>:
+Number of call contracts traded today.
+</p>
+
+<p>
+<b>Put Volume</b>:
+Number of put contracts traded today.
+</p>
+
+<p>
+<b>IV (Implied Volatility)</b>:
+Expected future volatility implied by option prices.
+</p>
 
 </div>
 
