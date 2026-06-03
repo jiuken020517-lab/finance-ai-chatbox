@@ -540,6 +540,7 @@ Calculate Portfolio Greeks
   </button>
 
   <div id="optionChainResult"></div>
+  <canvas id="ivSmileChart" width="700" height="400"></canvas>
 
 </div>
 
@@ -1926,49 +1927,126 @@ function analyzeOptionChain() {
       sentiment = "Neutral Sentiment";
     }
 
+    let maxPainStrike = "";
+    let minPainValue = Infinity;
+
+    rows.forEach(rowA => {
+      const testStrike = Number(rowA["Strike"]);
+      let totalPain = 0;
+
+      rows.forEach(rowB => {
+        const strike = Number(rowB["Strike"]);
+        const callOI = Number(rowB["Call OI"]);
+        const putOI = Number(rowB["Put OI"]);
+
+        const callPain = Math.max(testStrike - strike, 0) * callOI;
+        const putPain = Math.max(strike - testStrike, 0) * putOI;
+
+        totalPain += callPain + putPain;
+      });
+
+      if (totalPain < minPainValue) {
+        minPainValue = totalPain;
+        maxPainStrike = testStrike;
+      }
+    });
+
     document.getElementById("optionChainResult").innerHTML = `
       <h3>Option Chain Result</h3>
 
       <table>
-        <tr>
-          <th>Metric</th>
-          <th>Value</th>
-        </tr>
-
-        <tr>
-          <td>Total Call OI</td>
-          <td>${totalCallOI.toFixed(0)}</td>
-        </tr>
-
-        <tr>
-          <td>Total Put OI</td>
-          <td>${totalPutOI.toFixed(0)}</td>
-        </tr>
-
-        <tr>
-          <td>Put/Call Ratio</td>
-          <td>${putCallRatio.toFixed(2)}</td>
-        </tr>
-
-        <tr>
-          <td>Highest Call OI Strike</td>
-          <td>${highestCallStrike} (${highestCallOI})</td>
-        </tr>
-
-        <tr>
-          <td>Highest Put OI Strike</td>
-          <td>${highestPutStrike} (${highestPutOI})</td>
-        </tr>
-
-        <tr>
-          <td>Market Sentiment</td>
-          <td>${sentiment}</td>
-        </tr>
+        <tr><th>Metric</th><th>Value</th></tr>
+        <tr><td>Total Call OI</td><td>${totalCallOI.toFixed(0)}</td></tr>
+        <tr><td>Total Put OI</td><td>${totalPutOI.toFixed(0)}</td></tr>
+        <tr><td>Put/Call Ratio</td><td>${putCallRatio.toFixed(2)}</td></tr>
+        <tr><td>Highest Call OI Strike</td><td>${highestCallStrike} (${highestCallOI})</td></tr>
+        <tr><td>Highest Put OI Strike</td><td>${highestPutStrike} (${highestPutOI})</td></tr>
+        <tr><td>Max Pain Strike</td><td>${maxPainStrike}</td></tr>
+        <tr><td>Market Sentiment</td><td>${sentiment}</td></tr>
       </table>
     `;
+
+    drawIVSmileChart(rows);
   };
 
   reader.readAsArrayBuffer(file);
+}
+function drawIVSmileChart(rows) {
+  const canvas = document.getElementById("ivSmileChart");
+  const ctx = canvas.getContext("2d");
+
+  const width = canvas.width;
+  const height = canvas.height;
+
+  ctx.clearRect(0, 0, width, height);
+
+  const points = rows
+    .map(row => ({
+      strike: Number(row["Strike"]),
+      iv: Number(row["IV"])
+    }))
+    .filter(point => !isNaN(point.strike) && !isNaN(point.iv));
+
+  if (points.length === 0) {
+    ctx.fillText("No IV data found. Please add an IV column.", 30, 50);
+    return;
+  }
+
+  const minStrike = Math.min(...points.map(p => p.strike));
+  const maxStrike = Math.max(...points.map(p => p.strike));
+  const minIV = Math.min(...points.map(p => p.iv));
+  const maxIV = Math.max(...points.map(p => p.iv));
+
+  function xScale(strike) {
+    return 50 + ((strike - minStrike) / (maxStrike - minStrike)) * (width - 90);
+  }
+
+  function yScale(iv) {
+    return height - 50 - ((iv - minIV) / (maxIV - minIV)) * (height - 100);
+  }
+
+  ctx.strokeStyle = "#94a3b8";
+  ctx.lineWidth = 1;
+
+  ctx.beginPath();
+  ctx.moveTo(50, 30);
+  ctx.lineTo(50, height - 50);
+  ctx.lineTo(width - 30, height - 50);
+  ctx.stroke();
+
+  ctx.strokeStyle = "#2563eb";
+  ctx.lineWidth = 3;
+
+  ctx.beginPath();
+
+  points.forEach((point, index) => {
+    const x = xScale(point.strike);
+    const y = yScale(point.iv);
+
+    if (index === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+
+  ctx.stroke();
+
+  points.forEach(point => {
+    const x = xScale(point.strike);
+    const y = yScale(point.iv);
+
+    ctx.fillStyle = "#dc2626";
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.fillStyle = "#1e293b";
+  ctx.font = "14px Arial";
+  ctx.fillText("IV Smile / Skew", 20, 20);
+  ctx.fillText("Strike", width / 2 - 20, height - 15);
+  ctx.fillText("IV", 15, 40);
 }
 
     async function sendMessage() {
