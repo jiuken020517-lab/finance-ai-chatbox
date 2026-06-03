@@ -251,6 +251,7 @@ canvas {
   <button onclick="showOptionTool('portfolioGreeksTool')">Portfolio Greeks</button>
   <button onclick="showOptionTool('riskTool')">Risk Decomposition</button>
   <button onclick="showOptionTool('excelTool')">Excel Analyzer</button>
+  <button onclick="showOptionTool('optionChainTool')">Option Chain Analyzer</button>
 
   
   
@@ -522,6 +523,26 @@ Calculate Portfolio Greeks
   <div id="excelResult"></div>
 </div>
 
+<div id="optionChainTool" style="display:none;">
+
+  <h2>Option Chain Analyzer</h2>
+
+  <p>
+    Required Excel columns:
+    Strike | Call OI | Put OI | Call Volume | Put Volume
+  </p>
+
+  <label>Upload Option Chain Excel</label>
+  <input type="file" id="optionChainFile" accept=".xlsx,.xls,.csv">
+
+  <button onclick="analyzeOptionChain()">
+    Analyze Option Chain
+  </button>
+
+  <div id="optionChainResult"></div>
+
+</div>
+
   <script>
     let conversation = [];
 
@@ -551,6 +572,7 @@ function showOptionTool(toolId) {
   document.getElementById("portfolioGreeksTool").style.display = "none";
   document.getElementById("riskTool").style.display = "none";
   document.getElementById("excelTool").style.display = "none";
+  document.getElementById("optionChainTool").style.display = "none";
 
   document.getElementById(toolId).style.display = "block";
 }
@@ -1842,6 +1864,111 @@ Please provide:
     `<strong>AI:</strong><br>${marked.parse(aiReply)}`;
 
   scrollToBottom();
+}
+
+function analyzeOptionChain() {
+  const fileInput = document.getElementById("optionChainFile");
+  const file = fileInput.files[0];
+
+  if (!file) {
+    alert("Please upload an option chain Excel file first.");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function (e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: "array" });
+
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+
+    const rows = XLSX.utils.sheet_to_json(worksheet);
+
+    let totalCallOI = 0;
+    let totalPutOI = 0;
+
+    let highestCallOI = 0;
+    let highestPutOI = 0;
+
+    let highestCallStrike = "";
+    let highestPutStrike = "";
+
+    rows.forEach(row => {
+      const strike = Number(row["Strike"]);
+      const callOI = Number(row["Call OI"]);
+      const putOI = Number(row["Put OI"]);
+
+      totalCallOI += callOI;
+      totalPutOI += putOI;
+
+      if (callOI > highestCallOI) {
+        highestCallOI = callOI;
+        highestCallStrike = strike;
+      }
+
+      if (putOI > highestPutOI) {
+        highestPutOI = putOI;
+        highestPutStrike = strike;
+      }
+    });
+
+    const putCallRatio = totalPutOI / totalCallOI;
+
+    let sentiment = "";
+
+    if (putCallRatio > 1) {
+      sentiment = "Bearish Sentiment";
+    } else if (putCallRatio < 1) {
+      sentiment = "Bullish Sentiment";
+    } else {
+      sentiment = "Neutral Sentiment";
+    }
+
+    document.getElementById("optionChainResult").innerHTML = `
+      <h3>Option Chain Result</h3>
+
+      <table>
+        <tr>
+          <th>Metric</th>
+          <th>Value</th>
+        </tr>
+
+        <tr>
+          <td>Total Call OI</td>
+          <td>${totalCallOI.toFixed(0)}</td>
+        </tr>
+
+        <tr>
+          <td>Total Put OI</td>
+          <td>${totalPutOI.toFixed(0)}</td>
+        </tr>
+
+        <tr>
+          <td>Put/Call Ratio</td>
+          <td>${putCallRatio.toFixed(2)}</td>
+        </tr>
+
+        <tr>
+          <td>Highest Call OI Strike</td>
+          <td>${highestCallStrike} (${highestCallOI})</td>
+        </tr>
+
+        <tr>
+          <td>Highest Put OI Strike</td>
+          <td>${highestPutStrike} (${highestPutOI})</td>
+        </tr>
+
+        <tr>
+          <td>Market Sentiment</td>
+          <td>${sentiment}</td>
+        </tr>
+      </table>
+    `;
+  };
+
+  reader.readAsArrayBuffer(file);
 }
 
     async function sendMessage() {
