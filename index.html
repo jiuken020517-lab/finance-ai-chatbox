@@ -6,6 +6,7 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
   <style>
     body {
@@ -187,7 +188,7 @@ canvas {
 
   <div class="hero">
 
-    <h1>Finance AI Platform</h1>
+    <h1>Finance AI Platform v2.0</h1>
 
     <p class="subtitle">
       AI-powered finance analysis for options, valuation,
@@ -249,6 +250,7 @@ canvas {
   <button onclick="showOptionTool('popTool')">Probability of Profit</button>
   <button onclick="showOptionTool('portfolioGreeksTool')">Portfolio Greeks</button>
   <button onclick="showOptionTool('riskTool')">Risk Decomposition</button>
+  <button onclick="showOptionTool('excelTool')">Excel Analyzer</button>
 
   
   
@@ -508,6 +510,18 @@ Calculate Portfolio Greeks
 
 </div>
 
+<div id="excelTool" style="display:none;">
+  <h2>Excel Analyzer</h2>
+
+  <label>Upload Excel File</label>
+  <input type="file" id="excelFile" accept=".xlsx,.xls,.csv">
+
+  <button onclick="readExcelFile()">Read Excel</button>
+  <button onclick="analyzeExcelWithAI()">Analyze with AI</button>
+
+  <div id="excelResult"></div>
+</div>
+
   <script>
     let conversation = [];
 
@@ -536,6 +550,7 @@ function showOptionTool(toolId) {
   document.getElementById("popTool").style.display = "none";
   document.getElementById("portfolioGreeksTool").style.display = "none";
   document.getElementById("riskTool").style.display = "none";
+  document.getElementById("excelTool").style.display = "none";
 
   document.getElementById(toolId).style.display = "block";
 }
@@ -1733,6 +1748,100 @@ if (riskText.includes("Main Driver")) {
   addTableSection("Risk Decomposition Result", "riskResult");
 
   doc.save("Finance_AI_Report.pdf");
+}
+
+let excelTextData = "";
+
+function readExcelFile() {
+  const fileInput = document.getElementById("excelFile");
+  const file = fileInput.files[0];
+
+  if (!file) {
+    alert("Please upload an Excel file first.");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function (e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: "array" });
+
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+      header: 1
+    });
+
+    const previewRows = jsonData.slice(0, 20);
+
+    excelTextData = previewRows
+      .map(row => row.join(" | "))
+      .join("\n");
+
+    document.getElementById("excelResult").innerHTML = `
+      <h3>Excel Preview</h3>
+      <pre>${excelTextData}</pre>
+    `;
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+async function analyzeExcelWithAI() {
+  if (!excelTextData) {
+    alert("Please read the Excel file first.");
+    return;
+  }
+
+  const message =
+`Analyze this Excel data for finance insights:
+
+${excelTextData}
+
+Please provide:
+1. Key observations
+2. Possible financial meaning
+3. Risks or issues
+4. Suggested next analysis`;
+
+  conversation.push({
+    role: "user",
+    content: message
+  });
+
+  const chatBox = document.getElementById("chat");
+  showSection("chatSection");
+
+  chatBox.innerHTML += `<div class="user"><strong>You:</strong><br>Analyze uploaded Excel file</div>`;
+
+  const loadingId = "loading-" + Date.now();
+
+  chatBox.innerHTML += `<div class="ai" id="${loadingId}"><strong>AI:</strong><br>Loading...</div>`;
+
+  const response = await fetch("/api/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      messages: conversation
+    })
+  });
+
+  const data = await response.json();
+  const aiReply = data.reply || data.error || "No reply";
+
+  conversation.push({
+    role: "assistant",
+    content: aiReply
+  });
+
+  document.getElementById(loadingId).innerHTML =
+    `<strong>AI:</strong><br>${marked.parse(aiReply)}`;
+
+  scrollToBottom();
 }
 
     async function sendMessage() {
