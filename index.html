@@ -1774,7 +1774,7 @@ function readExcelFile() {
       header: 1
     });
 
-    const previewRows = jsonData.slice(0, 20);
+    const previewRows = jsonData.slice(0, 100);
 
     excelTextData = previewRows
       .map(row => row.join(" | "))
