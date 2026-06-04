@@ -549,6 +549,47 @@ Calculate Portfolio Greeks
   <button onclick="analyzeOptionChain()">
     Analyze Option Chain
   </button>
+  <hr>
+
+<h3>Paste Option Chain Data</h3>
+
+<p>Format: Strike, Call OI, Put OI, Call Volume, Put Volume, IV</p>
+
+<textarea id="optionChainPaste" rows="8">
+Strike,Call OI,Put OI,Call Volume,Put Volume,IV
+280,500,1200,200,350,0.38
+290,1000,900,450,280,0.35
+300,2500,1500,1200,600,0.32
+310,1800,1100,850,500,0.34
+320,900,700,300,250,0.37
+</textarea>
+
+<button onclick="analyzePastedOptionChain()">
+  Analyze Pasted Data
+</button>
+
+<hr>
+
+<h3>Option Chain Builder</h3>
+
+<label>Start Strike</label>
+<input id="builderStart" value="280">
+
+<label>Strike Gap</label>
+<input id="builderGap" value="10">
+
+<label>Number of Rows</label>
+<input id="builderRows" value="5">
+
+<button onclick="generateOptionChainBuilder()">
+  Generate Builder Table
+</button>
+
+<button onclick="analyzeBuilderOptionChain()">
+  Analyze Builder Data
+</button>
+
+<div id="builderTable"></div>
 
   <div id="optionChainResult"></div>
   <div id="optionChainAI"></div>
@@ -2115,6 +2156,206 @@ ${aiComment}
   };
 
   reader.readAsArrayBuffer(file);
+}
+
+function processOptionChainRows(rows) {
+  let totalCallOI = 0;
+  let totalPutOI = 0;
+
+  let highestCallOI = 0;
+  let highestPutOI = 0;
+
+  let highestCallStrike = "";
+  let highestPutStrike = "";
+
+  rows.forEach(row => {
+    const strike = Number(row["Strike"]);
+    const callOI = Number(row["Call OI"]);
+    const putOI = Number(row["Put OI"]);
+
+    totalCallOI += callOI;
+    totalPutOI += putOI;
+
+    if (callOI > highestCallOI) {
+      highestCallOI = callOI;
+      highestCallStrike = strike;
+    }
+
+    if (putOI > highestPutOI) {
+      highestPutOI = putOI;
+      highestPutStrike = strike;
+    }
+  });
+
+  const putCallRatio = totalPutOI / totalCallOI;
+
+  let sentiment = "";
+
+  if (putCallRatio > 1) {
+    sentiment = "Bearish Sentiment";
+  } else if (putCallRatio < 1) {
+    sentiment = "Bullish Sentiment";
+  } else {
+    sentiment = "Neutral Sentiment";
+  }
+
+  let maxPainStrike = "";
+  let minPainValue = Infinity;
+
+  rows.forEach(rowA => {
+    const testStrike = Number(rowA["Strike"]);
+    let totalPain = 0;
+
+    rows.forEach(rowB => {
+      const strike = Number(rowB["Strike"]);
+      const callOI = Number(rowB["Call OI"]);
+      const putOI = Number(rowB["Put OI"]);
+
+      const callPain = Math.max(testStrike - strike, 0) * callOI;
+      const putPain = Math.max(strike - testStrike, 0) * putOI;
+
+      totalPain += callPain + putPain;
+    });
+
+    if (totalPain < minPainValue) {
+      minPainValue = totalPain;
+      maxPainStrike = testStrike;
+    }
+  });
+
+  document.getElementById("optionChainResult").innerHTML = `
+    <h3>Option Chain Result</h3>
+
+    <table>
+      <tr><th>Metric</th><th>Value</th></tr>
+      <tr><td>Total Call OI</td><td>${totalCallOI.toFixed(0)}</td></tr>
+      <tr><td>Total Put OI</td><td>${totalPutOI.toFixed(0)}</td></tr>
+      <tr><td>Put/Call Ratio</td><td>${putCallRatio.toFixed(2)}</td></tr>
+      <tr><td>Highest Call OI Strike</td><td>${highestCallStrike} (${highestCallOI})</td></tr>
+      <tr><td>Highest Put OI Strike</td><td>${highestPutStrike} (${highestPutOI})</td></tr>
+      <tr><td>Max Pain Strike</td><td>${maxPainStrike}</td></tr>
+      <tr><td>Market Sentiment</td><td>${sentiment}</td></tr>
+    </table>
+  `;
+
+  let aiComment = "";
+
+  if (putCallRatio < 0.8) {
+    aiComment += "<p><b>Market Sentiment:</b> Bullish positioning detected.</p>";
+  } else if (putCallRatio > 1.2) {
+    aiComment += "<p><b>Market Sentiment:</b> Bearish positioning detected.</p>";
+  } else {
+    aiComment += "<p><b>Market Sentiment:</b> Neutral positioning.</p>";
+  }
+
+  aiComment += `
+    <p><b>Highest Call OI:</b> ${highestCallStrike}</p>
+    <p><b>Highest Put OI:</b> ${highestPutStrike}</p>
+    <p><b>Max Pain:</b> ${maxPainStrike}</p>
+    <p>Price may gravitate toward the Max Pain strike as expiration approaches.</p>
+  `;
+
+  let suggestedStrategy = "";
+
+  if (putCallRatio < 0.8) {
+    suggestedStrategy = "Bull Call Spread / Cash Secured Put";
+  } else if (putCallRatio > 1.2) {
+    suggestedStrategy = "Bear Put Spread / Protective Put";
+  } else {
+    suggestedStrategy = "Iron Condor / Covered Call";
+  }
+
+  aiComment += `
+    <p><b>Suggested Strategies:</b> ${suggestedStrategy}</p>
+  `;
+
+  document.getElementById("optionChainAI").innerHTML = `
+    <h3>AI Interpretation</h3>
+    ${aiComment}
+  `;
+
+  drawIVSmileChart(rows);
+}
+
+function analyzePastedOptionChain() {
+  const text = document.getElementById("optionChainPaste").value.trim();
+
+  const lines = text.split("\n");
+  const headers = lines[0].split(",").map(h => h.trim());
+
+  const rows = lines.slice(1).map(line => {
+    const values = line.split(",").map(v => v.trim());
+    const row = {};
+
+    headers.forEach((header, index) => {
+      row[header] = values[index];
+    });
+
+    return row;
+  });
+
+  processOptionChainRows(rows);
+}
+
+function generateOptionChainBuilder() {
+  const start = Number(document.getElementById("builderStart").value);
+  const gap = Number(document.getElementById("builderGap").value);
+  const rows = Number(document.getElementById("builderRows").value);
+
+  let html = `
+    <table>
+      <tr>
+        <th>Strike</th>
+        <th>Call OI</th>
+        <th>Put OI</th>
+        <th>Call Volume</th>
+        <th>Put Volume</th>
+        <th>IV</th>
+      </tr>
+  `;
+
+  for (let i = 0; i < rows; i++) {
+    const strike = start + i * gap;
+
+    html += `
+      <tr>
+        <td><input class="builderStrike" value="${strike}"></td>
+        <td><input class="builderCallOI" value="0"></td>
+        <td><input class="builderPutOI" value="0"></td>
+        <td><input class="builderCallVolume" value="0"></td>
+        <td><input class="builderPutVolume" value="0"></td>
+        <td><input class="builderIV" value="0.30"></td>
+      </tr>
+    `;
+  }
+
+  html += "</table>";
+
+  document.getElementById("builderTable").innerHTML = html;
+}
+
+function analyzeBuilderOptionChain() {
+  const strikes = document.querySelectorAll(".builderStrike");
+  const callOIs = document.querySelectorAll(".builderCallOI");
+  const putOIs = document.querySelectorAll(".builderPutOI");
+  const callVolumes = document.querySelectorAll(".builderCallVolume");
+  const putVolumes = document.querySelectorAll(".builderPutVolume");
+  const ivs = document.querySelectorAll(".builderIV");
+
+  const rows = [];
+
+  strikes.forEach((item, index) => {
+    rows.push({
+      "Strike": item.value,
+      "Call OI": callOIs[index].value,
+      "Put OI": putOIs[index].value,
+      "Call Volume": callVolumes[index].value,
+      "Put Volume": putVolumes[index].value,
+      "IV": ivs[index].value
+    });
+  });
+
+  processOptionChainRows(rows);
 }
 function drawIVSmileChart(rows) {
   const canvas = document.getElementById("ivSmileChart");
