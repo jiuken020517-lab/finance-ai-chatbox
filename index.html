@@ -2287,28 +2287,7 @@ if (mode === "full") {
   });
 }
 
-  rows.forEach(rowA => {
-    const testStrike = Number(rowA["Strike"]);
-    let totalPain = 0;
-
-    rows.forEach(rowB => {
-      const strike = Number(rowB["Strike"]);
-      const callOI = Number(rowB["Call OI"]);
-      const putOI = Number(rowB["Put OI"]);
-
-      const callPain = Math.max(testStrike - strike, 0) * callOI;
-      const putPain = Math.max(strike - testStrike, 0) * putOI;
-
-      totalPain += callPain + putPain;
-    });
-
-    if (totalPain < minPainValue) {
-      minPainValue = totalPain;
-      maxPainStrike = testStrike;
-    }
-  });
-
-  document.getElementById("optionChainResult").innerHTML = `
+document.getElementById("optionChainResult").innerHTML = `
     <h3>Option Chain Result</h3>
 
     <table>
