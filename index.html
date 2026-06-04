@@ -543,6 +543,24 @@ Calculate Portfolio Greeks
     Strike | Call OI | Put OI | Call Volume | Put Volume
   </p>
 
+  <label>Import Mode</label>
+
+<select id="optionChainMode">
+  <option value="full">
+    Full Option Chain
+  </option>
+
+  <option value="callsOnly">
+    Calls Only
+  </option>
+
+  <option value="putsOnly">
+    Puts Only
+  </option>
+</select>
+
+<br><br>
+
   <label>Upload Option Chain Excel</label>
   <input type="file" id="optionChainFile" accept=".xlsx,.xls,.csv">
 
@@ -2159,6 +2177,10 @@ ${aiComment}
 }
 
 function processOptionChainRows(rows) {
+
+  const mode =
+  document.getElementById("optionChainMode")?.value || "full";
+
   let totalCallOI = 0;
   let totalPutOI = 0;
 
@@ -2170,8 +2192,32 @@ function processOptionChainRows(rows) {
 
   rows.forEach(row => {
     const strike = Number(row["Strike"]);
-    const callOI = Number(row["Call OI"]);
-    const putOI = Number(row["Put OI"]);
+
+let callOI = 0;
+let putOI = 0;
+
+if (mode === "full") {
+  callOI = Number(row["Call OI"]);
+  putOI = Number(row["Put OI"]);
+}
+
+if (mode === "callsOnly") {
+  callOI =
+    Number(row["Call OI"]) ||
+    Number(row["Open Interest"]) ||
+    0;
+
+  putOI = 0;
+}
+
+if (mode === "putsOnly") {
+  putOI =
+    Number(row["Put OI"]) ||
+    Number(row["Open Interest"]) ||
+    0;
+
+  callOI = 0;
+}
 
     totalCallOI += callOI;
     totalPutOI += putOI;
@@ -2187,10 +2233,22 @@ function processOptionChainRows(rows) {
     }
   });
 
-  const putCallRatio = totalPutOI / totalCallOI;
+  let putCallRatio = 0;
+
+if (totalCallOI > 0) {
+  putCallRatio = totalPutOI / totalCallOI;
+}
 
   let sentiment = "";
 
+  
+    if (mode === "callsOnly") {
+  sentiment = "Calls Only Mode - Call-side positioning analysis";
+}
+else if (mode === "putsOnly") {
+  sentiment = "Puts Only Mode - Put-side positioning analysis";
+}
+else {
   if (putCallRatio > 1) {
     sentiment = "Bearish Sentiment";
   } else if (putCallRatio < 1) {
@@ -2198,9 +2256,33 @@ function processOptionChainRows(rows) {
   } else {
     sentiment = "Neutral Sentiment";
   }
+}
+let maxPainStrike = "N/A";
 
-  let maxPainStrike = "";
+if (mode === "full") {
   let minPainValue = Infinity;
+
+  rows.forEach(rowA => {
+    const testStrike = Number(rowA["Strike"]);
+    let totalPain = 0;
+
+    rows.forEach(rowB => {
+      const strike = Number(rowB["Strike"]);
+      const callOI = Number(rowB["Call OI"]);
+      const putOI = Number(rowB["Put OI"]);
+
+      const callPain = Math.max(testStrike - strike, 0) * callOI;
+      const putPain = Math.max(strike - testStrike, 0) * putOI;
+
+      totalPain += callPain + putPain;
+    });
+
+    if (totalPain < minPainValue) {
+      minPainValue = totalPain;
+      maxPainStrike = testStrike;
+    }
+  });
+}
 
   rows.forEach(rowA => {
     const testStrike = Number(rowA["Strike"]);
@@ -2247,6 +2329,25 @@ function processOptionChainRows(rows) {
   } else {
     aiComment += "<p><b>Market Sentiment:</b> Neutral positioning.</p>";
   }
+  if (mode === "callsOnly") {
+
+  aiComment += `
+    <p>
+    This dataset contains call option data only.
+    PCR and Max Pain require both call and put open interest.
+    </p>
+  `;
+}
+
+if (mode === "putsOnly") {
+
+  aiComment += `
+    <p>
+    This dataset contains put option data only.
+    PCR and Max Pain require both call and put open interest.
+    </p>
+  `;
+}
 
   aiComment += `
     <p><b>Highest Call OI:</b> ${highestCallStrike}</p>
