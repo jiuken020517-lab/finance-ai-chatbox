@@ -2271,8 +2271,11 @@ if (mode === "full") {
       const callOI = Number(rowB["Call OI"]);
       const putOI = Number(rowB["Put OI"]);
 
-      const callPain = Math.max(testStrike - strike, 0) * callOI;
-      const putPain = Math.max(strike - testStrike, 0) * putOI;
+      const callPain =
+        Math.max(testStrike - strike, 0) * callOI;
+
+      const putPain =
+        Math.max(strike - testStrike, 0) * putOI;
 
       totalPain += callPain + putPain;
     });
